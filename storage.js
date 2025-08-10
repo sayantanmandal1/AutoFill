@@ -350,7 +350,7 @@ class StorageManager {
     const errors = [];
     
     // Validate string fields
-    const stringFields = ['fullName', 'email', 'studentNumber', 'phone', 'tenthMarks', 'twelfthMarks', 'ugCgpa', 'leetcodeUrl', 'linkedinUrl', 'githubUrl', 'resumeUrl', 'portfolioUrl'];
+    const stringFields = ['fullName', 'email', 'studentNumber', 'phone', 'tenthMarks', 'twelfthMarks', 'ugCgpa', 'gender', 'campus', 'leetcodeUrl', 'linkedinUrl', 'githubUrl', 'resumeUrl', 'portfolioUrl'];
     stringFields.forEach(field => {
       if (profileData[field] !== undefined) {
         if (typeof profileData[field] === 'string') {

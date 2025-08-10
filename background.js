@@ -268,6 +268,8 @@ class BackgroundManager {
                             tenthMarks: "95",
                             twelfthMarks: "75",
                             ugCgpa: "8.87",
+                            gender: "Male",
+                            campus: "VIT-AP",
                             leetcodeUrl: "https://leetcode.com/u/sayonara1337/",
                             linkedinUrl: "https://www.linkedin.com/in/sayantan-mandal-8a14b7202/",
                             githubUrl: "https://github.com/sayantanmandal1",

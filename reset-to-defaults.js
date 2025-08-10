@@ -17,6 +17,8 @@ const newDefaultData = {
                 tenthMarks: "95",
                 twelfthMarks: "75",
                 ugCgpa: "8.87",
+                gender: "Male",
+                campus: "VIT-AP",
                 leetcodeUrl: "https://leetcode.com/u/sayonara1337/",
                 linkedinUrl: "https://www.linkedin.com/in/sayantan-mandal-8a14b7202/",
                 githubUrl: "https://github.com/sayantanmandal1",
@@ -51,6 +53,8 @@ if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
             console.log('   10th Marks:', newDefaultData.profiles.default.data.tenthMarks);
             console.log('   12th Marks:', newDefaultData.profiles.default.data.twelfthMarks);
             console.log('   UG CGPA:', newDefaultData.profiles.default.data.ugCgpa);
+            console.log('   Gender:', newDefaultData.profiles.default.data.gender);
+            console.log('   Campus:', newDefaultData.profiles.default.data.campus);
             console.log('   LinkedIn:', newDefaultData.profiles.default.data.linkedinUrl);
             console.log('   GitHub:', newDefaultData.profiles.default.data.githubUrl);
             console.log('   LeetCode:', newDefaultData.profiles.default.data.leetcodeUrl);
@@ -80,6 +84,8 @@ window.verifyDefaults = function() {
             console.log('   10th Marks:', profile.tenthMarks);
             console.log('   12th Marks:', profile.twelfthMarks);
             console.log('   UG CGPA:', profile.ugCgpa);
+            console.log('   Gender:', profile.gender);
+            console.log('   Campus:', profile.campus);
             console.log('   All URLs are set:', {
                 leetcode: !!profile.leetcodeUrl,
                 linkedin: !!profile.linkedinUrl,

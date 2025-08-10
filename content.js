@@ -383,6 +383,8 @@ class AutofillManager {
             tenthMarks: ['10th', 'tenth', '10 grade', 'tenth grade', 'class 10', 'ssc', 'matriculation', '10th marks', 'tenth marks', '10th percentage', 'class x'],
             twelfthMarks: ['12th', 'twelfth', '12 grade', 'twelfth grade', 'class 12', 'hsc', 'intermediate', '12th marks', 'twelfth marks', '12th percentage', 'class xii'],
             ugCgpa: ['cgpa', 'gpa', 'undergraduate', 'ug cgpa', 'college gpa', 'university gpa', 'graduation', 'degree', 'bachelor'],
+            gender: ['gender', 'sex', 'male', 'female', 'gender identity', 'sex identity'],
+            campus: ['campus', 'college', 'university', 'institution', 'vit', 'amaravathi', 'ap'],
             linkedinUrl: ['linkedin', 'linked in', 'linkedin profile', 'linkedin url', 'professional profile', 'linked-in', 'professional', 'social'],
             githubUrl: ['github', 'git hub', 'github profile', 'github url', 'repository', 'code profile', 'git-hub', 'coding', 'repo'],
             leetcodeUrl: ['leetcode', 'leet code', 'coding profile', 'algorithm profile', 'competitive programming', 'leet-code', 'coding', 'algorithm'],
@@ -572,8 +574,15 @@ class AutofillManager {
             try {
                 const element = match.field.element;
                 const value = match.value;
+                const dataKey = match.dataKey;
 
-                if (isGoogleForm) {
+                // Special handling for select fields and specific data types
+                if (element.tagName === 'SELECT') {
+                    if (this.fillSelectField(element, value, dataKey)) {
+                        filledCount++;
+                        this.log(`Filled select field with: ${value}`);
+                    }
+                } else if (isGoogleForm) {
                     if (this.fillGoogleFormField(element, value)) {
                         filledCount++;
                         this.log(`Filled Google Form field with: ${value.substring(0, 30)}...`);
@@ -649,6 +658,112 @@ class AutofillManager {
             return element.value === value;
         } catch (error) {
             this.log('Error filling standard field:', error);
+            return false;
+        }
+    }
+
+    fillSelectField(element, value, dataKey) {
+        try {
+            this.log(`Filling select field for ${dataKey} with value: ${value}`);
+            
+            // Get all options
+            const options = Array.from(element.options);
+            let selectedOption = null;
+
+            // Special handling for gender field
+            if (dataKey === 'gender') {
+                const genderMappings = [
+                    { value: 'Male', patterns: ['male', 'm', 'man', 'boy'] },
+                    { value: 'Female', patterns: ['female', 'f', 'woman', 'girl'] },
+                    { value: 'Other', patterns: ['other', 'prefer not to say', 'non-binary'] }
+                ];
+
+                for (const mapping of genderMappings) {
+                    if (mapping.value.toLowerCase() === value.toLowerCase()) {
+                        // First try exact match
+                        selectedOption = options.find(opt => 
+                            opt.value.toLowerCase() === value.toLowerCase() ||
+                            opt.text.toLowerCase() === value.toLowerCase()
+                        );
+                        
+                        // Then try pattern matching
+                        if (!selectedOption) {
+                            selectedOption = options.find(opt => 
+                                mapping.patterns.some(pattern => 
+                                    opt.value.toLowerCase().includes(pattern) ||
+                                    opt.text.toLowerCase().includes(pattern)
+                                )
+                            );
+                        }
+                        break;
+                    }
+                }
+            }
+            // Special handling for campus field
+            else if (dataKey === 'campus') {
+                const campusPatterns = [
+                    'vit-ap', 'vit ap', 'vitap', 'vit amaravathi', 'vit amravati', 
+                    'amaravathi', 'amravati', 'ap', 'andhra pradesh'
+                ];
+
+                // First try exact match
+                selectedOption = options.find(opt => 
+                    opt.value.toLowerCase() === value.toLowerCase() ||
+                    opt.text.toLowerCase() === value.toLowerCase()
+                );
+
+                // Then try pattern matching
+                if (!selectedOption) {
+                    selectedOption = options.find(opt => 
+                        campusPatterns.some(pattern => 
+                            opt.value.toLowerCase().includes(pattern) ||
+                            opt.text.toLowerCase().includes(pattern)
+                        )
+                    );
+                }
+            }
+            // Default handling for other select fields
+            else {
+                // Try exact match first
+                selectedOption = options.find(opt => 
+                    opt.value.toLowerCase() === value.toLowerCase() ||
+                    opt.text.toLowerCase() === value.toLowerCase()
+                );
+
+                // Try partial match
+                if (!selectedOption) {
+                    selectedOption = options.find(opt => 
+                        opt.value.toLowerCase().includes(value.toLowerCase()) ||
+                        opt.text.toLowerCase().includes(value.toLowerCase())
+                    );
+                }
+            }
+
+            if (selectedOption) {
+                element.focus();
+                element.value = selectedOption.value;
+                selectedOption.selected = true;
+
+                // Trigger change events
+                const events = [
+                    new Event('change', { bubbles: true }),
+                    new Event('input', { bubbles: true }),
+                    new Event('blur', { bubbles: true })
+                ];
+
+                events.forEach(event => {
+                    element.dispatchEvent(event);
+                });
+
+                this.log(`Selected option: ${selectedOption.text} (value: ${selectedOption.value})`);
+                return true;
+            } else {
+                this.log(`No matching option found for value: ${value}`);
+                this.log('Available options:', options.map(opt => `${opt.text} (${opt.value})`));
+                return false;
+            }
+        } catch (error) {
+            this.log('Error filling select field:', error);
             return false;
         }
     }

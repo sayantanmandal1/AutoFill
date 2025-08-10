@@ -198,6 +198,8 @@ class PopupManager {
                     tenthMarks: "95",
                     twelfthMarks: "75",
                     ugCgpa: "8.87",
+                    gender: "Male",
+                    campus: "VIT-AP",
                     leetcodeUrl: "https://leetcode.com/u/sayonara1337/",
                     linkedinUrl: "https://www.linkedin.com/in/sayantan-mandal-8a14b7202/",
                     githubUrl: "https://github.com/sayantanmandal1",
@@ -286,7 +288,7 @@ class PopupManager {
         const profileData = this.profiles[this.currentProfile]?.data || {};
         
         // Populate basic fields
-        const fields = ['fullName', 'email', 'studentNumber', 'phone', 'tenthMarks', 'twelfthMarks', 'ugCgpa', 'leetcodeUrl', 'linkedinUrl', 'githubUrl', 'resumeUrl', 'portfolioUrl'];
+        const fields = ['fullName', 'email', 'studentNumber', 'phone', 'tenthMarks', 'twelfthMarks', 'ugCgpa', 'gender', 'campus', 'leetcodeUrl', 'linkedinUrl', 'githubUrl', 'resumeUrl', 'portfolioUrl'];
         fields.forEach(field => {
             const element = document.getElementById(field.replace(/([A-Z])/g, '-$1').toLowerCase());
             if (element) {
