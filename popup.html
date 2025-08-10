@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Application Autofill</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Job Application Autofill</h1>
+        </header>
+        
+        <main>
+            <div class="profile-section">
+                <label for="profile-select">Profile:</label>
+                <select id="profile-select">
+                    <option value="default">Default Profile</option>
+                </select>
+                <div class="profile-actions">
+                    <button id="new-profile-btn" class="secondary-btn" title="Create new profile">
+                        <span class="btn-icon">+</span>New
+                    </button>
+                    <button id="manage-profile-btn" class="secondary-btn" title="Rename or delete current profile">
+                        <span class="btn-icon">⚙</span>Manage
+                    </button>
+                </div>
+            </div>
+            
+            <form id="settings-form">
+                <div class="form-group">
+                    <label for="full-name">Full Name: <span class="required">*</span></label>
+                    <input type="text" id="full-name" name="fullName" placeholder="Enter your full name" required>
+                    <div class="field-error" id="full-name-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">College/University Email ID: <span class="required">*</span></label>
+                    <input type="email" id="email" name="email" placeholder="your.email@university.edu" required>
+                    <div class="field-error" id="email-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="student-number">College Registration/Student Number:</label>
+                    <input type="text" id="student-number" name="studentNumber" placeholder="Your student ID">
+                    <div class="field-error" id="student-number-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone Number:</label>
+                    <input type="tel" id="phone" name="phone" placeholder="+1 (555) 123-4567" pattern="[\+]?[0-9\s\-\(\)]+">
+                    <div class="field-error" id="phone-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="leetcode-url">LeetCode Profile URL:</label>
+                    <input type="url" id="leetcode-url" name="leetcodeUrl" placeholder="https://leetcode.com/username">
+                    <div class="field-error" id="leetcode-url-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="linkedin-url">LinkedIn Profile URL:</label>
+                    <input type="url" id="linkedin-url" name="linkedinUrl" placeholder="https://linkedin.com/in/username">
+                    <div class="field-error" id="linkedin-url-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="github-url">GitHub Profile URL:</label>
+                    <input type="url" id="github-url" name="githubUrl" placeholder="https://github.com/username">
+                    <div class="field-error" id="github-url-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="resume-url">Resume Google Drive Link:</label>
+                    <input type="url" id="resume-url" name="resumeUrl" placeholder="https://drive.google.com/file/d/...">
+                    <div class="field-error" id="resume-url-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="portfolio-url">Portfolio Website URL:</label>
+                    <input type="url" id="portfolio-url" name="portfolioUrl" placeholder="https://yourportfolio.com">
+                    <div class="field-error" id="portfolio-url-error"></div>
+                </div>
+                
+                <div class="custom-fields-section">
+                    <h3>Custom Additional Fields</h3>
+                    <p class="section-description">Add any additional fields you need for job applications</p>
+                    <div id="custom-fields-container">
+                        <!-- Custom fields will be dynamically added here -->
+                    </div>
+                    <button type="button" id="add-custom-field" class="secondary-btn">
+                        <span class="btn-icon">+</span> Add Custom Field
+                    </button>
+                    <div class="field-error" id="custom-fields-error"></div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" id="save-btn" class="primary-btn">Save Settings</button>
+                    <button type="button" id="reset-btn" class="secondary-btn">Reset</button>
+                </div>
+            </form>
+            
+            <div class="autofill-section">
+                <button id="autofill-btn" class="autofill-btn">Autofill Now</button>
+                <p class="shortcut-hint">Or press Alt+Shift+F</p>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Settings</h3>
+                <div class="setting-item">
+                    <label>
+                        <input type="checkbox" id="auto-fill-enabled">
+                        Enable automatic autofill on page load
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <label>
+                        <input type="checkbox" id="password-protected">
+                        Password protect extension settings
+                    </label>
+                    <button type="button" id="change-password-btn" class="secondary-btn hidden" style="margin-top: 8px;">
+                        Change Password
+                    </button>
+                </div>
+                <div class="setting-item">
+                    <label for="blacklisted-domains">Blacklisted Domains:</label>
+                    <textarea id="blacklisted-domains" placeholder="example.com&#10;another-site.com"></textarea>
+                </div>
+            </div>
+        </main>
+        
+        <div id="status-message" class="status-message hidden"></div>
+        
+        <!-- Loading overlay -->
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="loading-spinner"></div>
+            <p>Saving your data...</p>
+        </div>
+        
+        <!-- Password prompt overlay -->
+        <div id="password-overlay" class="password-overlay hidden">
+            <div class="password-modal">
+                <h2 id="password-modal-title">Enter Password</h2>
+                <p id="password-modal-description">Please enter your password to access extension settings.</p>
+                
+                <form id="password-form">
+                    <div class="form-group">
+                        <label for="password-input">Password:</label>
+                        <input type="password" id="password-input" placeholder="Enter password" required>
+                        <div class="field-error" id="password-error"></div>
+                    </div>
+                    
+                    <div class="form-group hidden" id="new-password-group">
+                        <label for="new-password-input">New Password:</label>
+                        <input type="password" id="new-password-input" placeholder="Enter new password">
+                        <div class="field-error" id="new-password-error"></div>
+                    </div>
+                    
+                    <div class="form-group hidden" id="confirm-password-group">
+                        <label for="confirm-password-input">Confirm Password:</label>
+                        <input type="password" id="confirm-password-input" placeholder="Confirm new password">
+                        <div class="field-error" id="confirm-password-error"></div>
+                    </div>
+                    
+                    <div class="password-actions">
+                        <button type="submit" id="password-submit" class="primary-btn">Submit</button>
+                        <button type="button" id="password-cancel" class="secondary-btn">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Password setup overlay -->
+        <div id="password-setup-overlay" class="password-overlay hidden">
+            <div class="password-modal">
+                <h2>Set Up Password Protection</h2>
+                <p>Create a password to protect your extension settings. This password will be required to access and modify your data.</p>
+                
+                <form id="password-setup-form">
+                    <div class="form-group">
+                        <label for="setup-password-input">Password:</label>
+                        <input type="password" id="setup-password-input" placeholder="Enter password" required minlength="6">
+                        <div class="field-error" id="setup-password-error"></div>
+                        <small class="field-hint">Password must be at least 6 characters long</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="setup-confirm-password-input">Confirm Password:</label>
+                        <input type="password" id="setup-confirm-password-input" placeholder="Confirm password" required>
+                        <div class="field-error" id="setup-confirm-password-error"></div>
+                    </div>
+                    
+                    <div class="password-actions">
+                        <button type="submit" id="password-setup-submit" class="primary-btn">Set Password</button>
+                        <button type="button" id="password-setup-cancel" class="secondary-btn">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Template for custom field items -->
+    <template id="custom-field-template">
+        <div class="custom-field-item">
+            <div class="custom-field-inputs">
+                <input type="text" class="custom-field-key" placeholder="Field name (e.g., 'Skills')" required>
+                <input type="text" class="custom-field-value" placeholder="Field value">
+            </div>
+            <button type="button" class="remove-field" title="Remove field">
+                <span class="btn-icon">×</span>
+            </button>
+            <div class="field-error custom-field-error"></div>
+        </div>
+    </template>
+    
+    <script src="popup.js"></script>
+</body>
+</html>

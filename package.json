@@ -1,0 +1,41 @@
+{
+  "name": "job-application-autofill",
+  "version": "1.0.0",
+  "description": "Chrome extension for autofilling job application forms",
+  "main": "manifest.json",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:browser-compatibility": "vitest run test/browser-compatibility-runner.js --reporter=verbose",
+    "test:cross-browser": "vitest run test/browser-compatibility.test.js test/cross-browser-form-detection.test.js test/cross-browser-sync.test.js test/cross-browser-shortcuts.test.js --reporter=verbose",
+    "validate": "node validate-browser-compatibility.js",
+    "setup-git": "bash scripts/setup-git.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/job-application-autofill.git"
+  },
+  "keywords": [
+    "chrome-extension",
+    "autofill",
+    "job-application",
+    "form-filler",
+    "browser-extension",
+    "productivity",
+    "automation"
+  ],
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yourusername/job-application-autofill/issues"
+  },
+  "homepage": "https://github.com/yourusername/job-application-autofill#readme",
+  "devDependencies": {
+    "vitest": "^1.0.0",
+    "jsdom": "^23.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  }
+}
