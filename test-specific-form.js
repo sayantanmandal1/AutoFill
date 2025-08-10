@@ -11,15 +11,18 @@ localStorage.setItem('autofill_debug', 'true');
 
 // Sample data to test with
 const testData = {
-    fullName: 'John Doe',
-    email: 'john.doe@university.edu',
-    phone: '+1 (555) 123-4567',
-    studentNumber: 'STU123456',
-    linkedinUrl: 'https://linkedin.com/in/johndoe',
-    githubUrl: 'https://github.com/johndoe',
-    leetcodeUrl: 'https://leetcode.com/johndoe',
-    resumeUrl: 'https://drive.google.com/file/d/sample',
-    portfolioUrl: 'https://johndoe.dev',
+    fullName: 'Sayantan Mandal',
+    email: 'sayantan.22bce8533@vitapstudent.ac.in',
+    phone: '6290464748',
+    studentNumber: '22BCE8533',
+    tenthMarks: '95',
+    twelfthMarks: '75',
+    ugCgpa: '8.87',
+    linkedinUrl: 'https://www.linkedin.com/in/sayantan-mandal-8a14b7202/',
+    githubUrl: 'https://github.com/sayantanmandal1',
+    leetcodeUrl: 'https://leetcode.com/u/sayonara1337/',
+    resumeUrl: 'https://drive.google.com/file/d/1e_zGr0Ld9mUR9C1HLHjMGN8aV77l1jcO/view?usp=drive_link',
+    portfolioUrl: 'https://d1grz986bewgw4.cloudfront.net/',
     customFields: {}
 };
 
@@ -123,6 +126,9 @@ const patterns = {
     email: ['email', 'e-mail', 'email address', 'contact email', 'university email', 'college email', 'mail'],
     phone: ['phone', 'mobile', 'telephone', 'contact number', 'phone number', 'mobile number', 'cell', 'tel'],
     studentNumber: ['student', 'registration', 'id number', 'student id', 'enrollment', 'roll number', 'id'],
+    tenthMarks: ['10th', 'tenth', '10 grade', 'tenth grade', 'class 10', 'ssc', 'matriculation', '10th marks', 'tenth marks', '10th percentage', 'class x'],
+    twelfthMarks: ['12th', 'twelfth', '12 grade', 'twelfth grade', 'class 12', 'hsc', 'intermediate', '12th marks', 'twelfth marks', '12th percentage', 'class xii'],
+    ugCgpa: ['cgpa', 'gpa', 'undergraduate', 'ug cgpa', 'college gpa', 'university gpa', 'graduation', 'degree', 'bachelor'],
     linkedinUrl: ['linkedin', 'linked in', 'linkedin profile', 'linkedin url', 'professional profile'],
     githubUrl: ['github', 'git hub', 'github profile', 'github url', 'repository', 'code profile'],
     leetcodeUrl: ['leetcode', 'leet code', 'coding profile', 'algorithm profile', 'competitive programming'],

@@ -59,6 +59,11 @@ const DEFAULT_PROFILE_DATA = {
   email: "sayantan.22bce8533@vitapstudent.ac.in",
   studentNumber: "22BCE8533",
   phone: "6290464748",
+  tenthMarks: "95",
+  twelfthMarks: "75",
+  ugCgpa: "8.87",
+  gender: "Male",
+  campus: "VIT-AP",
   leetcodeUrl: "https://leetcode.com/u/sayonara1337/",
   linkedinUrl: "https://www.linkedin.com/in/sayantan-mandal-8a14b7202/",
   githubUrl: "https://github.com/sayantanmandal1",
@@ -345,7 +350,7 @@ class StorageManager {
     const errors = [];
     
     // Validate string fields
-    const stringFields = ['fullName', 'email', 'studentNumber', 'phone', 'leetcodeUrl', 'linkedinUrl', 'githubUrl', 'resumeUrl', 'portfolioUrl'];
+    const stringFields = ['fullName', 'email', 'studentNumber', 'phone', 'tenthMarks', 'twelfthMarks', 'ugCgpa', 'leetcodeUrl', 'linkedinUrl', 'githubUrl', 'resumeUrl', 'portfolioUrl'];
     stringFields.forEach(field => {
       if (profileData[field] !== undefined) {
         if (typeof profileData[field] === 'string') {
