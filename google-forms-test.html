@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Forms Style Test</title>
+    <style>
+        body {
+            font-family: 'Google Sans', Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .form-container {
+            max-width: 640px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            overflow: hidden;
+        }
+        .form-header {
+            background: #673ab7;
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+        .form-header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 400;
+        }
+        .form-header p {
+            margin: 8px 0 0 0;
+            opacity: 0.9;
+        }
+        .form-content {
+            padding: 24px;
+        }
+        .question-item {
+            margin-bottom: 32px;
+            border-left: 4px solid transparent;
+            padding-left: 16px;
+        }
+        .question-item.focused {
+            border-left-color: #673ab7;
+        }
+        .question-title {
+            font-size: 16px;
+            font-weight: 400;
+            color: #202124;
+            margin-bottom: 8px;
+            line-height: 24px;
+        }
+        .question-description {
+            font-size: 14px;
+            color: #5f6368;
+            margin-bottom: 16px;
+            line-height: 20px;
+        }
+        .form-input {
+            width: 100%;
+            border: none;
+            border-bottom: 1px solid #dadce0;
+            padding: 8px 0;
+            font-size: 16px;
+            background: transparent;
+            outline: none;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+        .form-input:focus {
+            border-bottom-color: #673ab7;
+            border-bottom-width: 2px;
+        }
+        .form-textarea {
+            width: 100%;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            padding: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            outline: none;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+        .form-textarea:focus {
+            border-color: #673ab7;
+            border-width: 2px;
+        }
+        .submit-section {
+            padding: 24px;
+            border-top: 1px solid #e0e0e0;
+            text-align: left;
+        }
+        .submit-btn {
+            background: #673ab7;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .submit-btn:hover {
+            background: #5e35b1;
+        }
+        .instructions {
+            background: #e8f0fe;
+            border: 1px solid #d2e3fc;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        .instructions h3 {
+            margin: 0 0 8px 0;
+            color: #1a73e8;
+            font-size: 16px;
+        }
+        .shortcut-key {
+            background: #f1f3f4;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-header">
+            <h1>Job Application Form</h1>
+            <p>Please fill out all required information</p>
+        </div>
+        
+        <div class="form-content">
+            <div class="instructions">
+                <h3>🚀 Test Your Autofill Extension</h3>
+                <p>This form mimics Google Forms structure. Use your extension to autofill:</p>
+                <ul>
+                    <li>Click the extension icon → "Autofill Now"</li>
+                    <li>Or press <span class="shortcut-key">Alt+Shift+F</span></li>
+                </ul>
+            </div>
+
+            <form id="google-style-form">
+                <div class="question-item" role="listitem">
+                    <div class="question-title" role="heading">Full Name *</div>
+                    <div class="question-description">Enter your complete legal name as it appears on official documents</div>
+                    <input type="text" class="form-input" name="fullName" aria-label="Full Name" required>
+                </div>
+
+                <div class="question-item" role="listitem">
+                    <div class="question-title" role="heading">Email Address *</div>
+                    <div class="question-description">We'll use this to contact you about your application</div>
+                    <input type="email" class="form-input" name="email" aria-label="Email Address" required>
+                </div>
+
+                <div class="question-item" role="listitem">
+                    <div class="question-title" role="heading">Phone Number</div>
+                    <div class="question-description">Include country code if outside the US</div>
+                    <input type="tel" class="form-input" name="phone" aria-label="Phone Number">
+                </div>
+
+                <div class="question-item" role="listitem">
+                    <div class="question-title" role="heading">Student ID / Registration Number</div>
+                    <div class="question-description">Your university student identification number</div>
+                    <input type="text" class="form-input" name="studentNumber" aria-label="Student ID">
+                </div>
+
+                <div class="question-item" role="listitem">
+                    <div class="question-title" role="heading">LinkedIn Profile URL</div>
+                    <div class="question-description">Link to your professional LinkedIn profile</div>
+                    <input type="url" class="form-input" name="linkedinUrl" aria-label="LinkedIn Profile URL" placeholder="https://linkedin.com/in/yourname">
+                </div>
+
+                <div class="question-item" role="listitem">
+                    <div class="question-title" role="heading">GitHub Profile URL</div>
+                    <div class="question-description">Link to your GitHub profile showcasing your code</div>
+                    <input type="url" class="form-input" name="githubUrl" aria-label="GitHub Profile URL" placeholder="https://github.com/yourname">
+                </div>
+
+                <div class="question-item" role="listitem">
+                    <div class="question-title" role="heading">LeetCode Profile URL</div>
+                    <div class="question-description">Link to your LeetCode profile (optional)</div>
+                    <input type="url" class="form-input" name="leetcodeUrl" aria-label="LeetCode Profile URL" placeholder="https://leetcode.com/yourname">
+                </div>
+
+                <div class="question-item" role="listitem">
+                    <div class="question-title" role="heading">Resume / CV Link</div>
+                    <div class="question-description">Google Drive link to your resume (make sure it's publicly accessible)</div>
+                    <input type="url" class="form-input" name="resumeUrl" aria-label="Resume Link" placeholder="https://drive.google.com/file/d/...">
+                </div>
+
+                <div class="question-item" role="listitem">
+                    <div class="question-title" role="heading">Portfolio Website URL</div>
+                    <div class="question-description">Link to your personal portfolio or website (optional)</div>
+                    <input type="url" class="form-input" name="portfolioUrl" aria-label="Portfolio Website URL" placeholder="https://yourportfolio.com">
+                </div>
+
+                <div class="question-item" role="listitem">
+                    <div class="question-title" role="heading">Cover Letter</div>
+                    <div class="question-description">Tell us why you're interested in this position</div>
+                    <textarea class="form-textarea" name="coverLetter" aria-label="Cover Letter" placeholder="Write your cover letter here..."></textarea>
+                </div>
+
+                <div class="question-item" role="listitem">
+                    <div class="question-title" role="heading">Technical Skills</div>
+                    <div class="question-description">List your programming languages, frameworks, and tools</div>
+                    <textarea class="form-textarea" name="skills" aria-label="Technical Skills" placeholder="e.g., JavaScript, Python, React, Node.js..."></textarea>
+                </div>
+            </form>
+        </div>
+
+        <div class="submit-section">
+            <button type="submit" class="submit-btn" onclick="submitForm()">Submit Application</button>
+        </div>
+    </div>
+
+    <script>
+        // Add focus effects
+        document.querySelectorAll('.form-input, .form-textarea').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.closest('.question-item').classList.add('focused');
+            });
+            
+            input.addEventListener('blur', function() {
+                this.closest('.question-item').classList.remove('focused');
+            });
+
+            // Visual feedback when filled
+            input.addEventListener('input', function() {
+                if (this.value.trim()) {
+                    this.style.borderBottomColor = '#4caf50';
+                    this.style.backgroundColor = '#f8fff8';
+                } else {
+                    this.style.borderBottomColor = '';
+                    this.style.backgroundColor = '';
+                }
+            });
+        });
+
+        function submitForm() {
+            event.preventDefault();
+            
+            const formData = new FormData(document.getElementById('google-style-form'));
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            
+            console.log('Form data:', data);
+            alert('Form submitted! Check console for data. (This is just a test form)');
+        }
+
+        // Log when page is ready
+        console.log('Google Forms style test page loaded!');
+        console.log('Use your extension to test autofill functionality.');
+    </script>
+</body>
+</html>

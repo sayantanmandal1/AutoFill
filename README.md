@@ -10,12 +10,14 @@ A powerful Chrome/Brave browser extension that acts as an instant autofill assis
 ## 🚀 Features
 
 ### Core Functionality
+
 - **Instant Autofill**: Fill forms with a single click or keyboard shortcut (Alt+Shift+F)
 - **Smart Field Detection**: Advanced algorithm matches form fields using multiple strategies
 - **Cross-Device Sync**: Data syncs across all your devices using Chrome storage
 - **Multiple Profiles**: Create different profiles for various application types
 
 ### Supported Data Fields
+
 - Full Name
 - College/University Email ID
 - College Registration/Student Number
@@ -28,6 +30,7 @@ A powerful Chrome/Brave browser extension that acts as an instant autofill assis
 - Custom additional fields (unlimited key-value pairs)
 
 ### Advanced Features
+
 - **Multi-Step Form Support**: Handles complex application forms
 - **Domain Blacklisting**: Disable autofill on specific websites
 - **Password Protection**: Secure your data with password encryption
@@ -48,9 +51,11 @@ A powerful Chrome/Brave browser extension that acts as an instant autofill assis
 ## 📦 Installation
 
 ### From Chrome Web Store (Recommended)
-*Coming soon - extension will be published to Chrome Web Store*
+
+_Coming soon - extension will be published to Chrome Web Store_
 
 ### Manual Installation (Developer Mode)
+
 1. Download or clone this repository
 2. Open Chrome and navigate to `chrome://extensions/`
 3. Enable "Developer mode" in the top right
@@ -58,37 +63,45 @@ A powerful Chrome/Brave browser extension that acts as an instant autofill assis
 5. The extension icon will appear in your browser toolbar
 
 ### For Brave Browser
+
 1. Open Brave and navigate to `brave://extensions/`
 2. Follow the same steps as Chrome installation
 
 ### For Microsoft Edge
+
 1. Open Edge and navigate to `edge://extensions/`
 2. Follow the same steps as Chrome installation
 
 ## 🔧 Usage
 
 ### Setting Up Your Profile
+
 1. Click the extension icon in your browser toolbar
 2. Fill in your personal information in the popup form
 3. Add any custom fields you need for specific applications
 4. Click "Save Settings" to store your data
 
 ### Using Autofill
+
 **Method 1: Click Button**
+
 1. Navigate to any form page
 2. Click the extension icon
 3. Click "Autofill Now" button
 
 **Method 2: Keyboard Shortcut**
+
 1. Navigate to any form page
 2. Press `Alt+Shift+F` to instantly fill the form
 
 ### Managing Profiles
+
 1. Use the profile dropdown to switch between profiles
 2. Click "New" to create additional profiles
 3. Click "Manage" to rename or delete profiles
 
 ### Security Settings
+
 - Enable password protection for sensitive data
 - Add domains to blacklist to disable autofill on specific sites
 - Toggle automatic autofill on page load
@@ -96,10 +109,12 @@ A powerful Chrome/Brave browser extension that acts as an instant autofill assis
 ## 🛠️ Development
 
 ### Prerequisites
+
 - Node.js (v14 or higher)
 - npm or yarn
 
 ### Setup
+
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/job-application-autofill.git
@@ -119,6 +134,7 @@ node validate-browser-compatibility.js
 ```
 
 ### Project Structure
+
 ```
 job-application-autofill/
 ├── manifest.json          # Extension manifest (Manifest V3)
@@ -134,7 +150,9 @@ job-application-autofill/
 ```
 
 ### Testing
+
 The extension includes comprehensive test coverage:
+
 - **97 automated tests** covering all functionality
 - **Cross-browser compatibility** tests for Chrome, Brave, and Edge
 - **Performance monitoring** and optimization tests
@@ -162,11 +180,11 @@ npm run test:watch
 
 ## 🌐 Browser Compatibility
 
-| Browser | Version | Status |
-|---------|---------|--------|
-| Chrome | 88+ | ✅ Fully Supported |
-| Brave | 1.20+ | ✅ Fully Supported |
-| Edge | 88+ | ✅ Fully Supported |
+| Browser | Version | Status             |
+| ------- | ------- | ------------------ |
+| Chrome  | 88+     | ✅ Fully Supported |
+| Brave   | 1.20+   | ✅ Fully Supported |
+| Edge    | 88+     | ✅ Fully Supported |
 
 **Manifest V3 Compliance**: This extension uses the latest Manifest V3 standard for enhanced security and performance.
 
@@ -188,6 +206,7 @@ Contributions are welcome! Please read our contributing guidelines:
 5. Open a Pull Request
 
 ### Development Guidelines
+
 - Follow existing code style and patterns
 - Add tests for new functionality
 - Update documentation as needed
@@ -200,6 +219,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🐛 Bug Reports & Feature Requests
 
 Please use the [GitHub Issues](https://github.com/yourusername/job-application-autofill/issues) page to:
+
 - Report bugs
 - Request new features
 - Ask questions about usage
@@ -231,4 +251,4 @@ Please use the [GitHub Issues](https://github.com/yourusername/job-application-a
 
 **Made with ❤️ for job seekers everywhere**
 
-*Star this repository if you find it helpful!*
+_Star this repository if you find it helpful!_
