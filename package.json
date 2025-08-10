@@ -1,19 +1,23 @@
 {
-  "name": "job-application-autofill",
+  "name": "job-application-autofill-extension",
   "version": "1.0.0",
-  "description": "Chrome extension for autofilling job application forms",
-  "main": "manifest.json",
+  "description": "A powerful Chrome/Brave browser extension for autofilling job applications and forms",
+  "main": "background.js",
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:browser-compatibility": "vitest run test/browser-compatibility-runner.js --reporter=verbose",
-    "test:cross-browser": "vitest run test/browser-compatibility.test.js test/cross-browser-form-detection.test.js test/cross-browser-sync.test.js test/cross-browser-shortcuts.test.js --reporter=verbose",
-    "validate": "node validate-browser-compatibility.js",
-    "setup-git": "bash scripts/setup-git.sh"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/yourusername/job-application-autofill.git"
+    "test:coverage": "vitest run --coverage",
+    "test:cross-browser": "node test/browser-compatibility-runner.js",
+    "test:browser-compatibility": "node validate-browser-compatibility.js",
+    "lint": "eslint *.js test/*.js --fix",
+    "lint:check": "eslint *.js test/*.js",
+    "build": "node scripts/build-extension.js",
+    "dev": "node scripts/dev-server.js",
+    "docs:generate": "node scripts/generate-api-docs.js",
+    "docs:serve": "node scripts/serve-docs.js",
+    "release:prepare": "node scripts/prepare-release.js",
+    "chrome-store:upload": "node scripts/chrome-store-upload.js",
+    "validate": "node scripts/validate-extension.js"
   },
   "keywords": [
     "chrome-extension",
@@ -21,21 +25,46 @@
     "job-application",
     "form-filler",
     "browser-extension",
-    "productivity",
-    "automation"
+    "manifest-v3"
   ],
-  "author": "Your Name <your.email@example.com>",
+  "author": "Sayantan Mandal",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/yourusername/job-application-autofill/issues"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sayantanmandal1/job-application-autofill.git"
   },
-  "homepage": "https://github.com/yourusername/job-application-autofill#readme",
+  "bugs": {
+    "url": "https://github.com/sayantanmandal1/job-application-autofill/issues"
+  },
+  "homepage": "https://github.com/sayantanmandal1/job-application-autofill#readme",
   "devDependencies": {
-    "vitest": "^1.0.0",
-    "jsdom": "^23.0.0"
+    "@vitest/coverage-v8": "^1.6.1",
+    "audit-ci": "^6.6.1",
+    "eslint": "^8.50.0",
+    "jsdoc": "^4.0.2",
+    "jsdoc-to-markdown": "^8.0.0",
+    "jsdom": "^23.0.0",
+    "playwright": "^1.40.0",
+    "vitest": "^1.0.0"
+  },
+  "dependencies": {
+    "chrome-webstore-upload": "^3.0.0",
+    "googleapis": "^128.0.0"
   },
   "engines": {
-    "node": ">=14.0.0",
-    "npm": ">=6.0.0"
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "browserslist": [
+    "Chrome >= 88",
+    "Edge >= 88"
+  ],
+  "manifest": {
+    "version": 3,
+    "permissions": [
+      "storage",
+      "activeTab",
+      "scripting"
+    ]
   }
 }

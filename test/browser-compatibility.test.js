@@ -54,7 +54,7 @@ describe('Browser Compatibility Tests', () => {
   beforeEach(() => {
     // Reset all mocks
     vi.clearAllMocks();
-    
+
     // Set up global chrome object
     global.chrome = mockChromeAPI;
   });
@@ -71,7 +71,7 @@ describe('Browser Compatibility Tests', () => {
           js: ['content.js']
         }]
       };
-      
+
       expect(manifest.manifest_version).toBe(3);
       expect(manifest.background.service_worker).toBeDefined();
       expect(manifest.background.scripts).toBeUndefined(); // V2 property should not exist
@@ -81,7 +81,7 @@ describe('Browser Compatibility Tests', () => {
       const manifest = {
         permissions: ['storage', 'activeTab', 'scripting']
       };
-      
+
       const requiredPermissions = ['storage', 'activeTab', 'scripting'];
       requiredPermissions.forEach(permission => {
         expect(manifest.permissions).toContain(permission);
@@ -95,7 +95,7 @@ describe('Browser Compatibility Tests', () => {
           js: ['content.js']
         }]
       };
-      
+
       expect(manifest.content_scripts).toBeDefined();
       expect(manifest.content_scripts[0].matches).toContain('http://*/*');
       expect(manifest.content_scripts[0].matches).toContain('https://*/*');
@@ -185,7 +185,7 @@ describe('Browser Compatibility Tests', () => {
             errorCaught = true;
             expect(error.message).toContain('quota');
           }
-          
+
           expect(errorCaught).toBe(true);
         });
       });
@@ -202,21 +202,21 @@ describe('Browser Compatibility Tests', () => {
 
         it('should register keyboard shortcuts properly', () => {
           const mockListener = vi.fn();
-          
+
           // Simulate background script loading
           browser.chrome.commands.onCommand.addListener(mockListener);
-          
+
           expect(browser.chrome.commands.onCommand.addListener).toHaveBeenCalledWith(mockListener);
         });
 
         it('should handle Alt+Shift+F shortcut trigger', () => {
           const mockListener = vi.fn();
           browser.chrome.commands.onCommand.addListener(mockListener);
-          
+
           // Simulate shortcut trigger
           const command = 'autofill';
           mockListener(command);
-          
+
           expect(mockListener).toHaveBeenCalledWith(command);
         });
       });
@@ -233,7 +233,7 @@ describe('Browser Compatibility Tests', () => {
 
         it('should send messages from popup to content script', async () => {
           const testMessage = { action: 'autofill', data: { fullName: 'Test User' } };
-          
+
           browser.chrome.tabs.query.mockImplementation((query, callback) => {
             setTimeout(() => callback && callback([{ id: 123 }]), 0);
           });
@@ -256,7 +256,7 @@ describe('Browser Compatibility Tests', () => {
         it('should handle runtime messages between components', () => {
           const mockListener = vi.fn();
           browser.chrome.runtime.onMessage.addListener(mockListener);
-          
+
           expect(browser.chrome.runtime.onMessage.addListener).toHaveBeenCalledWith(mockListener);
         });
       });

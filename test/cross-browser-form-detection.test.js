@@ -55,31 +55,31 @@ const createMockFormElements = () => {
   });
 
   return [
-    createMockElement('input', { 
-      name: 'full-name', 
-      id: 'applicant-name', 
+    createMockElement('input', {
+      name: 'full-name',
+      id: 'applicant-name',
       placeholder: 'Enter your full name',
       type: 'text'
     }),
-    createMockElement('input', { 
-      name: 'email', 
-      id: 'contact-email', 
+    createMockElement('input', {
+      name: 'email',
+      id: 'contact-email',
       placeholder: 'Your email address',
       type: 'email'
     }),
-    createMockElement('input', { 
-      name: 'phone', 
-      id: 'phone-number', 
+    createMockElement('input', {
+      name: 'phone',
+      id: 'phone-number',
       placeholder: 'Phone number',
       type: 'tel'
     }),
-    createMockElement('textarea', { 
-      name: 'cover-letter', 
-      id: 'cover-letter-text', 
+    createMockElement('textarea', {
+      name: 'cover-letter',
+      id: 'cover-letter-text',
       placeholder: 'Write your cover letter'
     }),
-    createMockElement('select', { 
-      name: 'experience-level', 
+    createMockElement('select', {
+      name: 'experience-level',
       id: 'experience-select'
     })
   ];
@@ -87,7 +87,7 @@ const createMockFormElements = () => {
 
 describe('Cross-Browser Form Detection', () => {
   const browsers = ['chrome', 'brave', 'edge'];
-  
+
   browsers.forEach(browserType => {
     describe(`${browserType.charAt(0).toUpperCase() + browserType.slice(1)} Browser`, () => {
       let mockDOM;
@@ -96,12 +96,12 @@ describe('Cross-Browser Form Detection', () => {
       beforeEach(() => {
         mockDOM = createMockDOM(browserType);
         mockElements = createMockFormElements();
-        
+
         // Set up global objects
         global.document = mockDOM.document;
         global.window = mockDOM.window;
         global.navigator = mockDOM.window.navigator;
-        
+
         // Mock querySelectorAll to return our test elements
         mockDOM.document.querySelectorAll.mockReturnValue(mockElements);
       });
@@ -127,16 +127,16 @@ describe('Cross-Browser Form Detection', () => {
 
         // Simulate form detection algorithm
         const detectedFields = {};
-        
+
         mockElements.forEach(element => {
           Object.entries(fieldMappings).forEach(([fieldKey, mapping]) => {
-            const nameMatch = mapping.keywords.some(keyword => 
+            const nameMatch = mapping.keywords.some(keyword =>
               element.name.toLowerCase().includes(keyword.toLowerCase())
             );
-            const idMatch = mapping.keywords.some(keyword => 
+            const idMatch = mapping.keywords.some(keyword =>
               element.id.toLowerCase().includes(keyword.toLowerCase())
             );
-            const placeholderMatch = mapping.keywords.some(keyword => 
+            const placeholderMatch = mapping.keywords.some(keyword =>
               element.placeholder.toLowerCase().includes(keyword.toLowerCase())
             );
 
@@ -153,7 +153,7 @@ describe('Cross-Browser Form Detection', () => {
 
       it('should handle different input types correctly', () => {
         const inputTypes = ['text', 'email', 'tel', 'url', 'password'];
-        
+
         inputTypes.forEach(type => {
           const element = {
             type: type,
@@ -166,7 +166,7 @@ describe('Cross-Browser Form Detection', () => {
           // Simulate filling the field
           const testValue = 'test-value';
           element.value = testValue;
-          
+
           expect(element.value).toBe(testValue);
         });
       });
@@ -174,15 +174,15 @@ describe('Cross-Browser Form Detection', () => {
       it('should trigger appropriate events after filling', () => {
         const element = mockElements[0]; // text input
         const testValue = 'John Doe';
-        
+
         // Simulate the filling process with events
         element.focus();
         element.value = testValue;
-        
+
         // Create and dispatch events
         const inputEvent = new Event('input', { bubbles: true });
         const changeEvent = new Event('change', { bubbles: true });
-        
+
         element.dispatchEvent(inputEvent);
         element.dispatchEvent(changeEvent);
         element.blur();
@@ -211,15 +211,15 @@ describe('Cross-Browser Form Detection', () => {
 
       it('should respect browser-specific form validation', () => {
         const emailInput = mockElements.find(el => el.type === 'email');
-        
+
         // Mock browser validation
         emailInput.checkValidity = vi.fn(() => true);
         emailInput.setCustomValidity = vi.fn();
-        
+
         // Test email validation
         emailInput.value = 'test@example.com';
         const isValid = emailInput.checkValidity();
-        
+
         expect(isValid).toBe(true);
         expect(emailInput.checkValidity).toHaveBeenCalled();
       });
@@ -235,7 +235,7 @@ describe('Cross-Browser Form Detection', () => {
       // Chrome-specific autocomplete handling
       const input = createMockFormElements()[0];
       input.autocomplete = 'name';
-      
+
       expect(input.autocomplete).toBe('name');
     });
 
@@ -246,7 +246,7 @@ describe('Cross-Browser Form Detection', () => {
 
       // Brave might block certain tracking scripts
       const isBlocked = mockDOM.window.navigator.userAgent.includes('Brave');
-      
+
       // Our extension should work regardless
       expect(typeof mockDOM.document.querySelectorAll).toBe('function');
     });
@@ -258,7 +258,7 @@ describe('Cross-Browser Form Detection', () => {
 
       // Edge-specific user agent detection
       const isEdge = mockDOM.window.navigator.userAgent.includes('Edg/');
-      
+
       expect(isEdge).toBe(true);
     });
   });

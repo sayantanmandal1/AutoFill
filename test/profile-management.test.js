@@ -28,47 +28,47 @@ const { StorageManager } = await import('../storage.js');
 describe('Profile Management', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Default mock behavior
     mockStorage.sync.get.mockResolvedValue({
       profiles: {
         default: {
-          name: "Default Profile",
+          name: 'Default Profile',
           data: {
-            fullName: "",
-            email: "",
-            studentNumber: "",
-            phone: "",
-            leetcodeUrl: "",
-            linkedinUrl: "",
-            githubUrl: "",
-            resumeUrl: "",
-            portfolioUrl: "",
+            fullName: '',
+            email: '',
+            studentNumber: '',
+            phone: '',
+            leetcodeUrl: '',
+            linkedinUrl: '',
+            githubUrl: '',
+            resumeUrl: '',
+            portfolioUrl: '',
             customFields: {}
           }
         }
       },
       settings: {
-        activeProfile: "default",
+        activeProfile: 'default',
         autoFillEnabled: false,
         blacklistedDomains: [],
         passwordProtected: false,
-        passwordHash: "",
-        passwordSalt: ""
+        passwordHash: '',
+        passwordSalt: ''
       }
     });
-    
+
     mockStorage.sync.set.mockResolvedValue();
   });
 
   describe('Profile Creation', () => {
     it('should create a new profile with default data structure', async () => {
       const profileData = {
-        name: "Work Profile",
+        name: 'Work Profile',
         data: {
-          fullName: "John Doe",
-          email: "john@company.com",
-          phone: "123-456-7890"
+          fullName: 'John Doe',
+          email: 'john@company.com',
+          phone: '123-456-7890'
         }
       };
 
@@ -77,18 +77,18 @@ describe('Profile Management', () => {
       expect(mockStorage.sync.set).toHaveBeenCalledWith({
         profiles: expect.objectContaining({
           'work-profile': expect.objectContaining({
-            name: "Work Profile",
+            name: 'Work Profile',
             data: expect.objectContaining({
-              fullName: "John Doe",
-              email: "john@company.com",
-              phone: "123-456-7890",
+              fullName: 'John Doe',
+              email: 'john@company.com',
+              phone: '123-456-7890',
               // Should include all default fields
-              studentNumber: "",
-              leetcodeUrl: "",
-              linkedinUrl: "",
-              githubUrl: "",
-              resumeUrl: "",
-              portfolioUrl: "",
+              studentNumber: '',
+              leetcodeUrl: '',
+              linkedinUrl: '',
+              githubUrl: '',
+              resumeUrl: '',
+              portfolioUrl: '',
               customFields: {}
             })
           })
@@ -100,24 +100,24 @@ describe('Profile Management', () => {
       const longName = 'a'.repeat(101); // 101 characters
       const profileData = {
         name: longName,
-        data: { fullName: "Test" }
+        data: { fullName: 'Test' }
       };
 
       // The validation should happen in the UI layer, but storage should handle it gracefully
       await StorageManager.saveProfile('test-profile', profileData);
-      
+
       // Should still save but with a reasonable name
       expect(mockStorage.sync.set).toHaveBeenCalled();
     });
 
     it('should handle profile creation with custom fields', async () => {
       const profileData = {
-        name: "Custom Profile",
+        name: 'Custom Profile',
         data: {
-          fullName: "Jane Smith",
+          fullName: 'Jane Smith',
           customFields: {
-            "Skills": "JavaScript, Python",
-            "Experience": "5 years"
+            'Skills': 'JavaScript, Python',
+            'Experience': '5 years'
           }
         }
       };
@@ -127,11 +127,11 @@ describe('Profile Management', () => {
       expect(mockStorage.sync.set).toHaveBeenCalledWith({
         profiles: expect.objectContaining({
           'custom-profile': expect.objectContaining({
-            name: "Custom Profile",
+            name: 'Custom Profile',
             data: expect.objectContaining({
               customFields: {
-                "Skills": "JavaScript, Python",
-                "Experience": "5 years"
+                'Skills': 'JavaScript, Python',
+                'Experience': '5 years'
               }
             })
           })
@@ -143,9 +143,9 @@ describe('Profile Management', () => {
   describe('Profile Validation', () => {
     it('should validate email format in profile data', async () => {
       const profileData = {
-        name: "Test Profile",
+        name: 'Test Profile',
         data: {
-          email: "invalid-email"
+          email: 'invalid-email'
         }
       };
 
@@ -155,9 +155,9 @@ describe('Profile Management', () => {
 
     it('should validate URL format in profile data', async () => {
       const profileData = {
-        name: "Test Profile",
+        name: 'Test Profile',
         data: {
-          githubUrl: "not-a-url"
+          githubUrl: 'not-a-url'
         }
       };
 
@@ -167,9 +167,9 @@ describe('Profile Management', () => {
 
     it('should validate phone format in profile data', async () => {
       const profileData = {
-        name: "Test Profile",
+        name: 'Test Profile',
         data: {
-          phone: "abc"
+          phone: 'abc'
         }
       };
 
@@ -183,26 +183,26 @@ describe('Profile Management', () => {
       mockStorage.sync.get.mockResolvedValue({
         profiles: {
           default: {
-            name: "Default Profile",
-            data: { fullName: "Default User" }
+            name: 'Default Profile',
+            data: { fullName: 'Default User' }
           },
           work: {
-            name: "Work Profile", 
-            data: { fullName: "Work User" }
+            name: 'Work Profile',
+            data: { fullName: 'Work User' }
           }
         },
         settings: {
-          activeProfile: "work"
+          activeProfile: 'work'
         }
       });
 
       const activeProfile = await StorageManager.getActiveProfile();
 
       expect(activeProfile).toEqual({
-        id: "work",
-        name: "Work Profile",
+        id: 'work',
+        name: 'Work Profile',
         data: expect.objectContaining({
-          fullName: "Work User"
+          fullName: 'Work User'
         })
       });
     });
@@ -210,10 +210,10 @@ describe('Profile Management', () => {
     it('should throw error when active profile does not exist', async () => {
       mockStorage.sync.get.mockResolvedValue({
         profiles: {
-          default: { name: "Default Profile", data: {} }
+          default: { name: 'Default Profile', data: {} }
         },
         settings: {
-          activeProfile: "nonexistent"
+          activeProfile: 'nonexistent'
         }
       });
 
@@ -228,8 +228,8 @@ describe('Profile Management', () => {
       mockStorage.local.set.mockRejectedValue(new Error('Local storage full'));
 
       const profileData = {
-        name: "Test Profile",
-        data: { fullName: "Test User" }
+        name: 'Test Profile',
+        data: { fullName: 'Test User' }
       };
 
       await expect(StorageManager.saveProfile('test-profile', profileData))
@@ -241,8 +241,8 @@ describe('Profile Management', () => {
       mockStorage.local.set.mockResolvedValue();
 
       const profileData = {
-        name: "Test Profile",
-        data: { fullName: "Test User" }
+        name: 'Test Profile',
+        data: { fullName: 'Test User' }
       };
 
       await StorageManager.saveProfile('test-profile', profileData);

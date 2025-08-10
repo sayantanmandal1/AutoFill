@@ -55,36 +55,36 @@ class PasswordManager {
 
 // Default profile structure as defined in design document
 const DEFAULT_PROFILE_DATA = {
-  fullName: "Sayantan Mandal",
-  email: "sayantan.22bce8533@vitapstudent.ac.in",
-  studentNumber: "22BCE8533",
-  phone: "6290464748",
-  tenthMarks: "95",
-  twelfthMarks: "75",
-  ugCgpa: "8.87",
-  gender: "Male",
-  campus: "VIT-AP",
-  leetcodeUrl: "https://leetcode.com/u/sayonara1337/",
-  linkedinUrl: "https://www.linkedin.com/in/sayantan-mandal-8a14b7202/",
-  githubUrl: "https://github.com/sayantanmandal1",
-  resumeUrl: "https://drive.google.com/file/d/1e_zGr0Ld9mUR9C1HLHjMGN8aV77l1jcO/view?usp=drive_link",
-  portfolioUrl: "https://d1grz986bewgw4.cloudfront.net/",
+  fullName: 'Sayantan Mandal',
+  email: 'sayantan.22bce8533@vitapstudent.ac.in',
+  studentNumber: '22BCE8533',
+  phone: '6290464748',
+  tenthMarks: '95',
+  twelfthMarks: '75',
+  ugCgpa: '8.87',
+  gender: 'Male',
+  campus: 'VIT-AP',
+  leetcodeUrl: 'https://leetcode.com/u/sayonara1337/',
+  linkedinUrl: 'https://www.linkedin.com/in/sayantan-mandal-8a14b7202/',
+  githubUrl: 'https://github.com/sayantanmandal1',
+  resumeUrl: 'https://drive.google.com/file/d/1e_zGr0Ld9mUR9C1HLHjMGN8aV77l1jcO/view?usp=drive_link',
+  portfolioUrl: 'https://d1grz986bewgw4.cloudfront.net/',
   customFields: {}
 };
 
 const DEFAULT_SETTINGS = {
-  activeProfile: "default",
+  activeProfile: 'default',
   autoFillEnabled: false,
   blacklistedDomains: [],
   passwordProtected: false,
-  passwordHash: "",
-  passwordSalt: ""
+  passwordHash: '',
+  passwordSalt: ''
 };
 
 const DEFAULT_DATA_STRUCTURE = {
   profiles: {
     default: {
-      name: "Default Profile",
+      name: 'Default Profile',
       data: { ...DEFAULT_PROFILE_DATA }
     }
   },
@@ -107,23 +107,23 @@ class StorageManager {
       }
 
       const existingData = await chrome.storage.sync.get(null);
-      
+
       // If no data exists, initialize with defaults
       if (Object.keys(existingData).length === 0) {
         await chrome.storage.sync.set(DEFAULT_DATA_STRUCTURE);
         return DEFAULT_DATA_STRUCTURE;
       }
-      
+
       // Validate and merge with defaults if needed
       const validatedData = this.validateAndMergeData(existingData);
       if (JSON.stringify(validatedData) !== JSON.stringify(existingData)) {
         await chrome.storage.sync.set(validatedData);
       }
-      
+
       return validatedData;
     } catch (error) {
       console.error('Failed to initialize storage:', error);
-      
+
       // Attempt fallback to local storage if sync fails
       try {
         if (chrome?.storage?.local) {
@@ -138,7 +138,7 @@ class StorageManager {
       } catch (fallbackError) {
         console.error('Fallback to local storage also failed:', fallbackError);
       }
-      
+
       throw new Error('Storage initialization failed: Unable to access browser storage');
     }
   }
@@ -157,7 +157,7 @@ class StorageManager {
       return this.validateAndMergeData(data);
     } catch (error) {
       console.error('Failed to get all data from sync storage:', error);
-      
+
       // Attempt fallback to local storage
       try {
         if (chrome?.storage?.local) {
@@ -168,7 +168,7 @@ class StorageManager {
       } catch (fallbackError) {
         console.error('Fallback to local storage failed:', fallbackError);
       }
-      
+
       throw new Error('Failed to retrieve data: Storage is not accessible');
     }
   }
@@ -181,11 +181,11 @@ class StorageManager {
     try {
       const data = await this.getAllData();
       const activeProfileId = data.settings.activeProfile;
-      
+
       if (!data.profiles[activeProfileId]) {
         throw new Error(`Active profile '${activeProfileId}' not found`);
       }
-      
+
       return {
         id: activeProfileId,
         ...data.profiles[activeProfileId]
@@ -213,9 +213,9 @@ class StorageManager {
 
       // Validate profile data
       const validatedData = this.validateProfileData(profileData.data || profileData);
-      
+
       const data = await this.getAllData();
-      
+
       // Update profile
       if (!data.profiles[profileId]) {
         data.profiles[profileId] = {
@@ -223,7 +223,7 @@ class StorageManager {
           data: { ...DEFAULT_PROFILE_DATA }
         };
       }
-      
+
       data.profiles[profileId].data = { ...data.profiles[profileId].data, ...validatedData };
       if (profileData.name && typeof profileData.name === 'string') {
         const trimmedName = profileData.name.trim();
@@ -231,7 +231,7 @@ class StorageManager {
           data.profiles[profileId].name = trimmedName;
         }
       }
-      
+
       // Try sync storage first, fallback to local
       try {
         if (chrome?.storage?.sync) {
@@ -283,9 +283,9 @@ class StorageManager {
 
       const validatedSettings = this.validateSettings(settings);
       const data = await this.getAllData();
-      
+
       data.settings = { ...data.settings, ...validatedSettings };
-      
+
       // Try sync storage first, fallback to local
       try {
         if (chrome?.storage?.sync) {
@@ -314,7 +314,7 @@ class StorageManager {
    */
   static validateAndMergeData(data) {
     const result = JSON.parse(JSON.stringify(DEFAULT_DATA_STRUCTURE));
-    
+
     // Merge profiles
     if (data.profiles && typeof data.profiles === 'object') {
       Object.keys(data.profiles).forEach(profileId => {
@@ -326,12 +326,12 @@ class StorageManager {
         }
       });
     }
-    
+
     // Merge settings - preserve existing activeProfile if it exists
     if (data.settings && typeof data.settings === 'object') {
       result.settings = { ...DEFAULT_SETTINGS, ...data.settings };
     }
-    
+
     return result;
   }
 
@@ -348,7 +348,7 @@ class StorageManager {
 
     const validated = {};
     const errors = [];
-    
+
     // Validate string fields
     const stringFields = ['fullName', 'email', 'studentNumber', 'phone', 'tenthMarks', 'twelfthMarks', 'ugCgpa', 'gender', 'campus', 'leetcodeUrl', 'linkedinUrl', 'githubUrl', 'resumeUrl', 'portfolioUrl'];
     stringFields.forEach(field => {
@@ -384,7 +384,7 @@ class StorageManager {
     if (validated.phone && !this.isValidPhone(validated.phone)) {
       errors.push('Phone number format is invalid');
     }
-    
+
     // Validate custom fields
     if (profileData.customFields && typeof profileData.customFields === 'object') {
       validated.customFields = {};
@@ -393,7 +393,7 @@ class StorageManager {
         if (key && typeof key === 'string' && key.trim().length > 0 && isNaN(key)) {
           const trimmedKey = key.trim();
           const value = profileData.customFields[key];
-          
+
           if (trimmedKey.length > 100) {
             errors.push(`Custom field key "${trimmedKey}" exceeds maximum length of 100 characters`);
           } else if (typeof value === 'string') {
@@ -411,7 +411,7 @@ class StorageManager {
     if (errors.length > 0) {
       throw new Error(`Validation errors: ${errors.join(', ')}`);
     }
-    
+
     return validated;
   }
 
@@ -421,7 +421,7 @@ class StorageManager {
    * @returns {boolean} True if valid
    */
   static isValidEmail(email) {
-    if (!email || typeof email !== 'string') return false;
+    if (!email || typeof email !== 'string') {return false;}
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email) && email.length <= 254;
   }
@@ -432,7 +432,7 @@ class StorageManager {
    * @returns {boolean} True if valid
    */
   static isValidUrl(url) {
-    if (!url || typeof url !== 'string') return false;
+    if (!url || typeof url !== 'string') {return false;}
     try {
       const urlObj = new URL(url);
       return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
@@ -447,7 +447,7 @@ class StorageManager {
    * @returns {boolean} True if valid
    */
   static isValidPhone(phone) {
-    if (!phone || typeof phone !== 'string') return false;
+    if (!phone || typeof phone !== 'string') {return false;}
     // Allow various phone formats: +1234567890, (123) 456-7890, 123-456-7890, etc.
     const phoneRegex = /^[\+]?[\d\s\-\(\)]{10,20}$/;
     return phoneRegex.test(phone);
@@ -466,7 +466,7 @@ class StorageManager {
 
     const validated = {};
     const errors = [];
-    
+
     if (settings.activeProfile !== undefined) {
       if (typeof settings.activeProfile === 'string' && settings.activeProfile.trim().length > 0) {
         validated.activeProfile = settings.activeProfile.trim();
@@ -474,20 +474,20 @@ class StorageManager {
         validated.activeProfile = 'default';
       }
     }
-    
+
     if (settings.autoFillEnabled !== undefined) {
       validated.autoFillEnabled = Boolean(settings.autoFillEnabled);
     }
-    
+
     if (settings.blacklistedDomains !== undefined) {
       if (Array.isArray(settings.blacklistedDomains)) {
         validated.blacklistedDomains = settings.blacklistedDomains
           .filter(domain => typeof domain === 'string' && domain.trim().length > 0)
           .map(domain => domain.trim().toLowerCase())
           .filter(domain => this.isValidDomain(domain));
-        
+
         // Check for invalid domains
-        const invalidDomains = settings.blacklistedDomains.filter(domain => 
+        const invalidDomains = settings.blacklistedDomains.filter(domain =>
           typeof domain === 'string' && domain.trim().length > 0 && !this.isValidDomain(domain.trim())
         );
         if (invalidDomains.length > 0) {
@@ -497,15 +497,15 @@ class StorageManager {
         validated.blacklistedDomains = [];
       }
     }
-    
+
     if (settings.passwordProtected !== undefined) {
       validated.passwordProtected = Boolean(settings.passwordProtected);
     }
-    
+
     if (settings.passwordHash !== undefined) {
       validated.passwordHash = typeof settings.passwordHash === 'string' ? settings.passwordHash : '';
     }
-    
+
     if (settings.passwordSalt !== undefined) {
       validated.passwordSalt = typeof settings.passwordSalt === 'string' ? settings.passwordSalt : '';
     }
@@ -513,7 +513,7 @@ class StorageManager {
     if (errors.length > 0) {
       throw new Error(`Settings validation errors: ${errors.join(', ')}`);
     }
-    
+
     return validated;
   }
 
@@ -523,7 +523,7 @@ class StorageManager {
    * @returns {boolean} True if valid
    */
   static isValidDomain(domain) {
-    if (!domain || typeof domain !== 'string') return false;
+    if (!domain || typeof domain !== 'string') {return false;}
     // Basic domain validation - allows subdomains
     const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
     return domainRegex.test(domain) && domain.length <= 253;
@@ -538,7 +538,7 @@ class StorageManager {
     try {
       const salt = PasswordManager.generateSalt();
       const hash = await PasswordManager.hashPasswordWithSalt(password, salt);
-      
+
       await this.saveSettings({
         passwordProtected: true,
         passwordHash: hash,
@@ -559,26 +559,26 @@ class StorageManager {
   static async changePassword(currentPassword, newPassword) {
     try {
       const settings = await this.getSettings();
-      
+
       if (!settings.passwordProtected || !settings.passwordHash || !settings.passwordSalt) {
         throw new Error('Password protection is not enabled');
       }
-      
+
       // Verify current password
       const isValid = await PasswordManager.hashPasswordWithSalt(currentPassword, settings.passwordSalt);
       if (isValid !== settings.passwordHash) {
         return false;
       }
-      
+
       // Set new password
       const salt = PasswordManager.generateSalt();
       const hash = await PasswordManager.hashPasswordWithSalt(newPassword, salt);
-      
+
       await this.saveSettings({
         passwordHash: hash,
         passwordSalt: salt
       });
-      
+
       return true;
     } catch (error) {
       console.error('Failed to change password:', error);
@@ -594,11 +594,11 @@ class StorageManager {
   static async verifyPassword(password) {
     try {
       const settings = await this.getSettings();
-      
+
       if (!settings.passwordProtected || !settings.passwordHash || !settings.passwordSalt) {
         return true; // No password protection enabled
       }
-      
+
       const hash = await PasswordManager.hashPasswordWithSalt(password, settings.passwordSalt);
       return hash === settings.passwordHash;
     } catch (error) {
@@ -618,13 +618,13 @@ class StorageManager {
       if (!isValid) {
         return false;
       }
-      
+
       await this.saveSettings({
         passwordProtected: false,
-        passwordHash: "",
-        passwordSalt: ""
+        passwordHash: '',
+        passwordSalt: ''
       });
-      
+
       return true;
     } catch (error) {
       console.error('Failed to disable password protection:', error);

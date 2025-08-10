@@ -12,7 +12,7 @@ import './cross-browser-sync.test.js';
 import './cross-browser-shortcuts.test.js';
 
 describe('Complete Browser Compatibility Test Suite', () => {
-  let testResults = {
+  const testResults = {
     chrome: { passed: 0, failed: 0, total: 0 },
     brave: { passed: 0, failed: 0, total: 0 },
     edge: { passed: 0, failed: 0, total: 0 }
@@ -40,7 +40,7 @@ describe('Complete Browser Compatibility Test Suite', () => {
       expect(manifest.manifest_version).toBe(3);
       expect(manifest.background.service_worker).toBeDefined();
       expect(manifest.background.scripts).toBeUndefined();
-      
+
       // Required permissions for all browsers
       const requiredPermissions = ['storage', 'activeTab', 'scripting'];
       requiredPermissions.forEach(permission => {
@@ -67,7 +67,7 @@ describe('Complete Browser Compatibility Test Suite', () => {
       for (const size of iconSizes) {
         const iconPath = manifest.icons[size];
         expect(iconPath).toBeDefined();
-        
+
         // Verify icon file exists
         try {
           const iconResponse = await fetch(`/${iconPath}`);
@@ -128,11 +128,11 @@ describe('Complete Browser Compatibility Test Suite', () => {
   describe('Performance Compatibility Tests', () => {
     it('should validate form detection performance across browsers', () => {
       const browsers = ['chrome', 'brave', 'edge'];
-      
+
       browsers.forEach(browser => {
         // Mock performance measurement
         const startTime = performance.now();
-        
+
         // Simulate form detection algorithm
         const mockElements = Array.from({ length: 50 }, (_, i) => ({
           name: `field-${i}`,
@@ -161,7 +161,7 @@ describe('Complete Browser Compatibility Test Suite', () => {
 
         // Performance should be under 100ms for 50 fields
         expect(executionTime).toBeLessThan(100);
-        
+
         testResults[browser].total++;
         testResults[browser].passed++;
       });
@@ -171,10 +171,10 @@ describe('Complete Browser Compatibility Test Suite', () => {
 
     it('should validate storage operation performance', async () => {
       const browsers = ['chrome', 'brave', 'edge'];
-      
+
       for (const browser of browsers) {
         const startTime = performance.now();
-        
+
         // Simulate storage operations
         const testData = {
           profiles: {
@@ -189,13 +189,13 @@ describe('Complete Browser Compatibility Test Suite', () => {
 
         // Mock storage set/get operations
         await new Promise(resolve => setTimeout(resolve, 1)); // Simulate async operation
-        
+
         const endTime = performance.now();
         const executionTime = endTime - startTime;
 
         // Storage operations should be fast
         expect(executionTime).toBeLessThan(50);
-        
+
         testResults[browser].total++;
         testResults[browser].passed++;
       }
@@ -223,7 +223,7 @@ describe('Complete Browser Compatibility Test Suite', () => {
 
     it('should validate data isolation between domains', () => {
       const domains = ['example.com', 'test.com', 'google.com'];
-      
+
       domains.forEach(domain => {
         // Mock domain-specific data isolation
         const domainData = {
@@ -243,7 +243,7 @@ describe('Complete Browser Compatibility Test Suite', () => {
   describe('User Experience Compatibility', () => {
     it('should validate popup interface across browsers', () => {
       const browsers = ['chrome', 'brave', 'edge'];
-      
+
       browsers.forEach(browser => {
         // Mock popup dimensions and styling
         const popupSpecs = {
@@ -267,7 +267,7 @@ describe('Complete Browser Compatibility Test Suite', () => {
 
     it('should validate toast notifications across browsers', () => {
       const browsers = ['chrome', 'brave', 'edge'];
-      
+
       browsers.forEach(browser => {
         // Mock toast notification system
         const toastSpecs = {

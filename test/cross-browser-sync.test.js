@@ -190,16 +190,16 @@ describe('Cross-Browser Data Synchronization', () => {
 
       it('should respect write operation limits', async () => {
         const writeOperations = [];
-        
+
         mockStorage.sync.set.mockImplementation((data, callback) => {
           writeOperations.push(Date.now());
-          
+
           // Simulate rate limiting after too many operations
           if (writeOperations.length > mockStorage.sync.MAX_WRITE_OPERATIONS_PER_MINUTE) {
             const error = { message: 'MAX_WRITE_OPERATIONS_PER_MINUTE exceeded' };
             global.chrome.runtime = { lastError: error };
           }
-          
+
           setTimeout(() => callback && callback(), 0);
         });
 
@@ -221,7 +221,7 @@ describe('Cross-Browser Data Synchronization', () => {
 
         const results = await Promise.all(promises);
         const errors = results.filter(result => result instanceof Error);
-        
+
         expect(errors.length).toBeGreaterThan(0);
         expect(errors[0].message).toContain('MAX_WRITE_OPERATIONS_PER_MINUTE');
       });
@@ -230,7 +230,7 @@ describe('Cross-Browser Data Synchronization', () => {
         // Mock corrupted data retrieval
         mockStorage.sync.get.mockImplementation((keys, callback) => {
           const corruptedData = {
-            profiles: "invalid_json_structure",
+            profiles: 'invalid_json_structure',
             settings: null
           };
           setTimeout(() => callback && callback(corruptedData), 0);
@@ -247,7 +247,7 @@ describe('Cross-Browser Data Synchronization', () => {
         });
 
         // Extension should handle corrupted data
-        expect(retrievedData.profiles).toBe("invalid_json_structure");
+        expect(retrievedData.profiles).toBe('invalid_json_structure');
         expect(retrievedData.settings).toBe(null);
       });
 
@@ -319,16 +319,16 @@ describe('Cross-Browser Data Synchronization', () => {
 
     it('should handle browser-specific storage limitations', () => {
       const browsers = ['chrome', 'brave', 'edge'];
-      
+
       browsers.forEach(browserType => {
         const storage = createBrowserStorageMock(browserType);
-        
+
         // All browsers should support basic sync operations
         expect(typeof storage.sync.get).toBe('function');
         expect(typeof storage.sync.set).toBe('function');
         expect(typeof storage.sync.remove).toBe('function');
         expect(typeof storage.sync.clear).toBe('function');
-        
+
         // Quota limits should be reasonable
         expect(storage.sync.QUOTA_BYTES).toBeGreaterThan(50000);
         expect(storage.sync.MAX_ITEMS).toBeGreaterThan(100);

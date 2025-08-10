@@ -22,6 +22,9 @@ A powerful Chrome/Brave browser extension that acts as an instant autofill assis
 - College/University Email ID
 - College Registration/Student Number
 - Phone Number / Mobile Number
+- **Gender/Sex** (Smart Selection)
+- **Campus/University** (Smart Selection)
+- Academic Marks (10th, 12th, UG CGPA)
 - LeetCode Profile URL
 - LinkedIn Profile URL
 - GitHub Profile URL
@@ -31,6 +34,7 @@ A powerful Chrome/Brave browser extension that acts as an instant autofill assis
 
 ### Advanced Features
 
+- **Smart Field Selection**: Intelligent dropdown option selection for gender and campus fields
 - **Multi-Step Form Support**: Handles complex application forms
 - **Domain Blacklisting**: Disable autofill on specific websites
 - **Password Protection**: Secure your data with password encryption
@@ -71,6 +75,88 @@ _Coming soon - extension will be published to Chrome Web Store_
 
 1. Open Edge and navigate to `edge://extensions/`
 2. Follow the same steps as Chrome installation
+
+## 🧠 Smart Field Selection
+
+The extension features intelligent field detection and selection logic for common form fields, especially useful for Indian students applying to various institutions.
+
+### Gender/Sex Field Intelligence
+
+The extension automatically handles gender fields with smart selection logic:
+
+**For Text Input Fields:**
+- Fills "Male" as the default value
+
+**For Dropdown/Select Fields:**
+- **Primary Match**: Looks for "Male" option first
+- **Fallback Patterns**: Intelligently selects from:
+  - "M" (abbreviation)
+  - "man" (alternative wording)
+  - "boy" (informal option)
+
+**Detection Keywords**: Recognizes fields labeled as:
+- "gender", "sex", "gender identity", "sex identity"
+
+### Campus/University Field Intelligence
+
+Specifically designed for VIT students with smart campus selection:
+
+**For Text Input Fields:**
+- Fills "VIT-AP" as the default value
+
+**For Dropdown/Select Fields:**
+- **Primary Match**: Looks for "VIT-AP" option first
+- **Smart Patterns**: Intelligently selects from:
+  - "VIT-Amaravathi" (full name)
+  - "VIT AP" (space variant)
+  - "amaravathi" (location only)
+  - "ap" (state abbreviation)
+  - "vit_ap" (underscore variant)
+
+**Detection Keywords**: Recognizes fields labeled as:
+- "campus", "college", "university", "institution", "branch", "location"
+
+### How Smart Selection Works
+
+1. **Field Detection**: Extension scans form fields using multiple strategies
+2. **Pattern Matching**: Matches field labels against known patterns
+3. **Option Analysis**: For dropdowns, analyzes all available options
+4. **Intelligent Selection**: Chooses the best matching option using priority rules
+5. **Fallback Logic**: Uses partial matching if exact matches aren't found
+
+### Examples
+
+**Gender Field Examples:**
+```html
+<!-- These will all be handled intelligently -->
+<select name="gender">
+  <option value="Male">Male</option>     <!-- ✅ Selected -->
+  <option value="Female">Female</option>
+</select>
+
+<select name="sex">
+  <option value="M">M</option>           <!-- ✅ Selected -->
+  <option value="F">F</option>
+</select>
+
+<input type="text" name="gender">        <!-- ✅ Filled with "Male" -->
+```
+
+**Campus Field Examples:**
+```html
+<!-- These will all be handled intelligently -->
+<select name="campus">
+  <option value="VIT-AP">VIT-AP</option>           <!-- ✅ Selected -->
+  <option value="VIT Chennai">VIT Chennai</option>
+</select>
+
+<select name="university">
+  <option value="amaravathi">Amaravathi</option>    <!-- ✅ Selected -->
+  <option value="chennai">Chennai</option>
+</select>
+
+<input type="text" name="campus">                  <!-- ✅ Filled with "VIT-AP" -->
+```
 
 ## 🔧 Usage
 
@@ -215,6 +301,49 @@ Contributions are welcome! Please read our contributing guidelines:
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🔧 Troubleshooting
+
+### Smart Field Issues
+
+**Gender field not selecting correctly:**
+- Check if the dropdown has "Male", "M", or similar options
+- Verify the field is detected (check console logs with debug mode)
+- Some forms may use non-standard option values
+
+**Campus field not selecting VIT-AP:**
+- Ensure the dropdown contains VIT-related options
+- Check for variations like "VIT-Amaravathi", "VIT AP", or "amaravathi"
+- Some forms may use different naming conventions
+
+**Form fields not being detected:**
+- Refresh the page and try again
+- Check if the form loads dynamically (wait a few seconds)
+- Some forms may use non-standard field naming
+
+### General Issues
+
+**Extension not working:**
+1. Ensure the extension is enabled in `chrome://extensions/`
+2. Refresh the page after enabling the extension
+3. Check if the website is in your blacklist
+
+**Data not saving:**
+1. Check if you have sufficient storage space
+2. Ensure you clicked "Save Settings" after making changes
+3. Try disabling and re-enabling the extension
+
+**Keyboard shortcut not working:**
+1. Verify `Alt+Shift+F` is not conflicting with other shortcuts
+2. Try clicking the "Autofill Now" button instead
+3. Check if the page has focus (click on the page first)
+
+### Debug Mode
+
+Enable debug mode to see detailed logs:
+1. Open browser Developer Tools (F12)
+2. Go to Console tab
+3. Use the extension - you'll see detailed field detection logs
 
 ## 🐛 Bug Reports & Feature Requests
 

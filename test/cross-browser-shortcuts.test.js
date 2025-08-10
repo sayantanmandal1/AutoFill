@@ -106,27 +106,27 @@ describe('Cross-Browser Keyboard Shortcuts', () => {
 
       it('should register keyboard shortcut listener', () => {
         const mockListener = vi.fn();
-        
+
         // Simulate background script registering listener
         chrome.commands.onCommand.addListener(mockListener);
-        
+
         expect(mockCommands.onCommand.addListener).toHaveBeenCalledWith(mockListener);
       });
 
       it('should handle autofill command trigger', async () => {
         const mockListener = vi.fn();
         chrome.commands.onCommand.addListener(mockListener);
-        
+
         // Simulate shortcut being pressed
         const command = 'autofill';
         mockListener(command);
-        
+
         expect(mockListener).toHaveBeenCalledWith(command);
       });
 
       it('should retrieve available commands', async () => {
         const commands = await chrome.commands.getAll();
-        
+
         expect(mockCommands.getAll).toHaveBeenCalled();
         expect(commands).toHaveLength(1);
         expect(commands[0].name).toBe('autofill');
@@ -138,9 +138,9 @@ describe('Cross-Browser Keyboard Shortcuts', () => {
           if (command === 'autofill') {
             // Mock getting active tab
             chrome.tabs.query.mockResolvedValue([{ id: 123 }]);
-            
+
             const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-            
+
             // Mock sending message to content script
             chrome.tabs.sendMessage.mockResolvedValue({ success: true });
             await chrome.tabs.sendMessage(tabs[0].id, { action: 'autofill' });
@@ -148,10 +148,10 @@ describe('Cross-Browser Keyboard Shortcuts', () => {
         });
 
         chrome.commands.onCommand.addListener(mockListener);
-        
+
         // Trigger the command
         await mockListener('autofill');
-        
+
         expect(chrome.tabs.query).toHaveBeenCalledWith({ active: true, currentWindow: true });
         expect(chrome.tabs.sendMessage).toHaveBeenCalledWith(123, { action: 'autofill' });
       });
@@ -159,7 +159,7 @@ describe('Cross-Browser Keyboard Shortcuts', () => {
       operatingSystems.forEach(os => {
         it(`should work on ${os} operating system`, () => {
           const osMock = createOSMock(os);
-          
+
           // Mock platform detection
           Object.defineProperty(global.navigator, 'platform', {
             value: osMock.platform,
@@ -173,10 +173,10 @@ describe('Cross-Browser Keyboard Shortcuts', () => {
 
           const mockListener = vi.fn();
           chrome.commands.onCommand.addListener(mockListener);
-          
+
           // Simulate command trigger
           mockListener('autofill');
-          
+
           expect(mockListener).toHaveBeenCalledWith('autofill');
         });
       });
@@ -193,7 +193,7 @@ describe('Cross-Browser Keyboard Shortcuts', () => {
 
         const commands = await chrome.commands.getAll();
         const autofillCommand = commands.find(cmd => cmd.name === 'autofill');
-        
+
         // Extension should handle missing shortcut gracefully
         expect(autofillCommand.shortcut).toBe('');
       });
@@ -201,19 +201,19 @@ describe('Cross-Browser Keyboard Shortcuts', () => {
       it('should support multiple command listeners', () => {
         const listener1 = vi.fn();
         const listener2 = vi.fn();
-        
+
         chrome.commands.onCommand.addListener(listener1);
         chrome.commands.onCommand.addListener(listener2);
-        
+
         expect(mockCommands.onCommand.addListener).toHaveBeenCalledTimes(2);
       });
 
       it('should handle listener removal', () => {
         const mockListener = vi.fn();
-        
+
         chrome.commands.onCommand.addListener(mockListener);
         chrome.commands.onCommand.removeListener(mockListener);
-        
+
         expect(mockCommands.onCommand.addListener).toHaveBeenCalledWith(mockListener);
         expect(mockCommands.onCommand.removeListener).toHaveBeenCalledWith(mockListener);
       });
@@ -223,11 +223,11 @@ describe('Cross-Browser Keyboard Shortcuts', () => {
   describe('Cross-Browser Shortcut Compatibility', () => {
     it('should use consistent shortcut format across browsers', async () => {
       const browsers = ['chrome', 'brave', 'edge'];
-      
+
       for (const browserType of browsers) {
         const commands = createCommandsMock(browserType);
         const commandList = await commands.getAll();
-        
+
         const autofillCommand = commandList.find(cmd => cmd.name === 'autofill');
         expect(autofillCommand.shortcut).toBe('Alt+Shift+F');
       }
@@ -242,7 +242,7 @@ describe('Cross-Browser Keyboard Shortcuts', () => {
 
       modifierTests.forEach(test => {
         const osMock = createOSMock(test.os);
-        
+
         // The shortcut should remain consistent across OS
         expect(test.expected).toBe('Alt+Shift+F');
       });
