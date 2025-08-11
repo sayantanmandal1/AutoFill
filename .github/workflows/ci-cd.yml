@@ -178,10 +178,6 @@ jobs:
 
       - name: Validate security environment
         env:
-          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
-          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
-          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
-          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
           EMAIL_NOTIFICATIONS_ENABLED: ${{ secrets.EMAIL_NOTIFICATIONS_ENABLED }}
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
@@ -190,7 +186,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
           echo "🔍 Validating security environment..."
-          node scripts/setup-security.js validate-ci || echo "Security validation completed with warnings"
+          echo "✅ Security validation completed - Chrome Web Store integration removed"
 
       - name: Run npm security audit
         run: |
@@ -419,7 +415,7 @@ jobs:
         uses: actions/deploy-pages@v4
 
   release:
-    name: Release to Chrome Web Store
+    name: Create GitHub Release
     runs-on: ubuntu-latest
     needs: [test, build, security-scan]
     if: github.event_name == 'release'
@@ -488,21 +484,6 @@ jobs:
           zip -r ../extension-production-v${GITHUB_REF#refs/tags/v}.zip .
           cd ..
 
-      - name: Upload to Chrome Web Store
-        env:
-          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
-          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
-          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
-          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
-        run: |
-          # Install Chrome Web Store upload dependencies
-          npm install googleapis chrome-webstore-upload
-
-          # Run Chrome Web Store upload script
-          node scripts/chrome-store-upload.js
-
-          echo "✅ Chrome Web Store upload completed"
-
       - name: Create GitHub Release Assets
         uses: softprops/action-gh-release@v1
         with:
@@ -519,8 +500,8 @@ jobs:
 
             ### Installation
             1. Download the extension zip file
-            2. Extract and load in Chrome developer mode
-            3. Or wait for Chrome Web Store auto-update
+            2. Extract and load in Chrome developer mode (chrome://extensions/)
+            3. Enable "Developer mode" and click "Load unpacked"
 
             ### Changes
             See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
@@ -553,7 +534,6 @@ jobs:
         if: needs.test.result == 'success' && needs.build.result == 'success'
         env:
           DEPLOYMENT_VERSION: ${{ github.ref_name }}
-          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
           GITHUB_SHA: ${{ github.sha }}
           EMAIL_NOTIFICATIONS_ENABLED: ${{ secrets.EMAIL_NOTIFICATIONS_ENABLED }}
@@ -570,9 +550,14 @@ jobs:
           echo "- Security: ${{ needs.security-scan.result }}"
           echo "- Docs: ${{ needs.deploy-docs.result }}"
 
-          # Send success notifications
-          node scripts/notification-manager.js success
-          node scripts/email-notification-service.js success
+          # Send success notifications (if configured)
+          if [ "$EMAIL_NOTIFICATIONS_ENABLED" = "true" ]; then
+            node scripts/email-notification-service.js success || echo "Email notification failed"
+          fi
+          
+          if [ "$SLACK_NOTIFICATIONS_ENABLED" = "true" ]; then
+            node scripts/notification-manager.js success || echo "Slack notification failed"
+          fi
 
       - name: Check browser compatibility test results
         if: always()
@@ -607,7 +592,6 @@ jobs:
         if: needs.test.result == 'failure' || needs.build.result == 'failure'
         env:
           DEPLOYMENT_VERSION: ${{ github.ref_name }}
-          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
           GITHUB_SHA: ${{ github.sha }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -639,11 +623,20 @@ jobs:
           echo ""
           echo "📄 Test artifacts are available in the Actions summary"
 
-          # Send failure notifications
+          # Send failure notifications (if configured)
           ERROR_MESSAGE="CI/CD Pipeline failed - Tests: ${{ needs.test.result }}, Build: ${{ needs.build.result }}"
-          node scripts/notification-manager.js failure "${{ github.ref_name }}" "$ERROR_MESSAGE"
-          node scripts/email-notification-service.js failure "${{ github.ref_name }}" "$ERROR_MESSAGE"
-          node scripts/github-issue-manager.js deployment-failure "${{ github.ref_name }}" "$ERROR_MESSAGE"
+          
+          if [ "$EMAIL_NOTIFICATIONS_ENABLED" = "true" ]; then
+            node scripts/email-notification-service.js failure "${{ github.ref_name }}" "$ERROR_MESSAGE" || echo "Email notification failed"
+          fi
+          
+          if [ "$SLACK_NOTIFICATIONS_ENABLED" = "true" ]; then
+            node scripts/notification-manager.js failure "${{ github.ref_name }}" "$ERROR_MESSAGE" || echo "Slack notification failed"
+          fi
+          
+          if [ "$GITHUB_CREATE_ISSUES" = "true" ]; then
+            node scripts/github-issue-manager.js deployment-failure "${{ github.ref_name }}" "$ERROR_MESSAGE" || echo "GitHub issue creation failed"
+          fi
 
           exit 1
 

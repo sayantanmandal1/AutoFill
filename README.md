@@ -393,7 +393,7 @@ Please use the [GitHub Issues](https://github.com/yourusername/job-application-a
 - [API Documentation](docs/API.md) - Technical API reference
 - [Contributing Guidelines](CONTRIBUTING.md) - How to contribute to the project
 - [Debugging Guide](DEBUGGING_GUIDE.md) - Field matching and technical debugging
-- [Chrome Web Store Setup](docs/CHROME_WEB_STORE_SETUP.md) - Auto-update deployment guide
+
 - [Security Best Practices](docs/SECURITY_BEST_PRACTICES.md) - Security guidelines and credential management
 
 ### Project Information
