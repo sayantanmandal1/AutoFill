@@ -79,7 +79,7 @@ Before pushing these changes, consider:
 4. **Validate environment configurations** in GitHub repository settings
 
 ## Notes
-
+.
 - The `production` environment name in `chrome-store-deploy.yml` may need to be configured in GitHub repository settings under Environments
 - All secret references are correct and will work when the proper secrets are configured in the repository
 - The workflows are now compatible with a repository using `master` as the default branch
