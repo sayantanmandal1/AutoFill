@@ -23,6 +23,10 @@ jobs:
   create-release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout code
@@ -206,41 +210,42 @@ jobs:
       - name: Generate release notes
         id: release_notes
         run: |
-          VERSION="${{ github.event.inputs.version }}"
+          VERSION="${{ steps.version.outputs.version }}"
           
           # Generate release notes
           RELEASE_NOTES=$(node scripts/changelog-generator.js release-notes --version=$VERSION 2>/dev/null || echo "")
           
           if [ -z "$RELEASE_NOTES" ]; then
-            RELEASE_NOTES="## 🚀 Release v$VERSION
+            cat > release-notes.md << EOF
+          ## 🚀 Release v$VERSION
 
-This release includes:
-- Automated build and testing
-- Security vulnerability scanning
-- Production-ready extension package
+          This release includes:
+          - Automated build and testing
+          - Security vulnerability scanning
+          - Production-ready extension package
 
-### Installation
-1. Download the extension zip file below
-2. Extract the zip file
-3. Open Chrome and go to chrome://extensions/
-4. Enable \"Developer mode\"
-5. Click \"Load unpacked\" and select the extracted folder
+          ### Installation
+          1. Download the extension zip file below
+          2. Extract the zip file
+          3. Open Chrome and go to chrome://extensions/
+          4. Enable "Developer mode"
+          5. Click "Load unpacked" and select the extracted folder
 
-### Changes
-See [CHANGELOG.md](CHANGELOG.md) for detailed changes."
+          ### Changes
+          See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
+          EOF
+          else
+            echo "$RELEASE_NOTES" > release-notes.md
           fi
-          
-          # Save release notes to file for GitHub release
-          echo "$RELEASE_NOTES" > release-notes.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ github.event.inputs.version }}
-          name: Release v${{ github.event.inputs.version }}
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Release v${{ steps.version.outputs.version }}
           body_path: release-notes.md
           files: |
-            job-application-autofill-v${{ github.event.inputs.version }}.zip
+            job-application-autofill-v${{ steps.version.outputs.version }}.zip
           draft: false
           prerelease: ${{ github.event.inputs.prerelease }}
           generate_release_notes: true
@@ -248,9 +253,9 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed changes."
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: release-v${{ github.event.inputs.version }}
+          name: release-v${{ steps.version.outputs.version }}
           path: |
-            job-application-autofill-v${{ github.event.inputs.version }}.zip
+            job-application-autofill-v${{ steps.version.outputs.version }}.zip
             release-notes.md
             production-build/
           retention-days: 90

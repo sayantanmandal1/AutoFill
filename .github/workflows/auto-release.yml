@@ -123,6 +123,10 @@ jobs:
     needs: check-for-release
     if: needs.check-for-release.outputs.should_release == 'true'
     
+    permissions:
+      contents: write
+      pull-requests: write
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
