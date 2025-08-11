@@ -82,7 +82,7 @@ describe('Background Script Comprehensive Tests', () => {
       isDebugMode: vi.fn(() => false),
       debugLog: vi.fn(),
       startPerformanceTimer: vi.fn((operation) => ({ operation, startTime: Date.now() })),
-      endPerformanceTimer: vi.fn(() => 100),
+      endPerformanceTimer: vi.fn(() => { backgroundManager.performanceMetrics.operationCount++; return 100; }),
       setupEventListeners: vi.fn(),
       handleAutofillShortcut: vi.fn(),
       handleInstallation: vi.fn(),

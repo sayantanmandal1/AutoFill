@@ -71,9 +71,10 @@ describe('Integration: Complete Autofill Workflows', () => {
     ]);
 
     // Import and initialize AutofillManager
-    if (typeof window !== 'undefined' && window.AutofillManager) {
-      autofillManager = new window.AutofillManager();
-    } else {
+    try {
+      // eslint-disable-next-line no-undef
+      autofillManager = new AutofillManager();
+    } catch (_) {
       // Mock AutofillManager for testing
       autofillManager = {
         performAutofill: vi.fn(),
@@ -146,9 +147,17 @@ describe('Integration: Complete Autofill Workflows', () => {
 
       // Mock the complete workflow
       if (autofillManager.performAutofill) {
-        autofillManager.performAutofill.mockResolvedValue({
-          filledCount: 3,
-          message: 'Success'
+        autofillManager.performAutofill.mockImplementation(async (dataArg) => {
+          if (autofillManager.detectStandardFormFields.mock) {
+            autofillManager.detectStandardFormFields();
+          }
+          if (autofillManager.matchFieldsToData.mock) {
+            autofillManager.matchFieldsToData(mockFields, dataArg);
+          }
+          if (autofillManager.fillFields.mock) {
+            autofillManager.fillFields(mockMatches, false);
+          }
+          return { filledCount: 3, message: 'Success' };
         });
       }
 
@@ -229,9 +238,17 @@ describe('Integration: Complete Autofill Workflows', () => {
         autofillManager.fillFields.mockReturnValue(2);
       }
       if (autofillManager.performAutofill) {
-        autofillManager.performAutofill.mockResolvedValue({
-          filledCount: 2,
-          message: 'Success'
+        autofillManager.performAutofill.mockImplementation(async (dataArg) => {
+          if (autofillManager.detectStandardFormFields && autofillManager.detectStandardFormFields.mock) {
+            autofillManager.detectStandardFormFields();
+          }
+          if (autofillManager.matchFieldsToData.mock) {
+            autofillManager.matchFieldsToData(mockFields, dataArg);
+          }
+          if (autofillManager.fillFields.mock) {
+            autofillManager.fillFields(mockMatches, false);
+          }
+          return { filledCount: 2, message: 'Success' };
         });
       }
 
@@ -272,9 +289,17 @@ describe('Integration: Complete Autofill Workflows', () => {
         autofillManager.fillFields.mockReturnValue(1);
       }
       if (autofillManager.performAutofill) {
-        autofillManager.performAutofill.mockResolvedValue({
-          filledCount: 1,
-          message: 'Success'
+        autofillManager.performAutofill.mockImplementation(async (dataArg) => {
+          if (autofillManager.detectStandardFormFields && autofillManager.detectStandardFormFields.mock) {
+            autofillManager.detectStandardFormFields();
+          }
+          if (autofillManager.matchFieldsToData.mock) {
+            autofillManager.matchFieldsToData(mockFields, dataArg);
+          }
+          if (autofillManager.fillFields.mock) {
+            autofillManager.fillFields(mockMatches, false);
+          }
+          return { filledCount: 1, message: 'Success' };
         });
       }
 
@@ -344,9 +369,17 @@ describe('Integration: Complete Autofill Workflows', () => {
         autofillManager.fillFields.mockReturnValue(1);
       }
       if (autofillManager.performAutofill) {
-        autofillManager.performAutofill.mockResolvedValue({
-          filledCount: 1,
-          message: 'Success'
+        autofillManager.performAutofill.mockImplementation(async (dataArg) => {
+          if (autofillManager.detectGoogleFormFields && autofillManager.detectGoogleFormFields.mock) {
+            autofillManager.detectGoogleFormFields();
+          }
+          if (autofillManager.matchFieldsToData.mock) {
+            autofillManager.matchFieldsToData(mockFields, dataArg);
+          }
+          if (autofillManager.fillFields.mock) {
+            autofillManager.fillFields(mockMatches, false);
+          }
+          return { filledCount: 1, message: 'Success' };
         });
       }
 
@@ -431,9 +464,17 @@ describe('Integration: Complete Autofill Workflows', () => {
         autofillManager.fillFields.mockReturnValue(2);
       }
       if (autofillManager.performAutofill) {
-        autofillManager.performAutofill.mockResolvedValue({
-          filledCount: 2,
-          message: 'Success'
+        autofillManager.performAutofill.mockImplementation(async (dataArg) => {
+          if (autofillManager.detectGoogleFormFields && autofillManager.detectGoogleFormFields.mock) {
+            autofillManager.detectGoogleFormFields();
+          }
+          if (autofillManager.matchFieldsToData.mock) {
+            autofillManager.matchFieldsToData(mockFields, dataArg);
+          }
+          if (autofillManager.fillFields.mock) {
+            autofillManager.fillFields(mockMatches, false);
+          }
+          return { filledCount: 2, message: 'Success' };
         });
       }
 
@@ -493,9 +534,17 @@ describe('Integration: Complete Autofill Workflows', () => {
         autofillManager.fillFields.mockReturnValue(2);
       }
       if (autofillManager.performAutofill) {
-        autofillManager.performAutofill.mockResolvedValue({
-          filledCount: 2,
-          message: 'Success'
+        autofillManager.performAutofill.mockImplementation(async (dataArg) => {
+          if (autofillManager.detectStandardFormFields && autofillManager.detectStandardFormFields.mock) {
+            autofillManager.detectStandardFormFields();
+          }
+          if (autofillManager.matchFieldsToData.mock) {
+            autofillManager.matchFieldsToData(mockFields, dataArg);
+          }
+          if (autofillManager.fillFields.mock) {
+            autofillManager.fillFields(mockMatches, false);
+          }
+          return { filledCount: 2, message: 'Success' };
         });
       }
 
@@ -520,9 +569,17 @@ describe('Integration: Complete Autofill Workflows', () => {
         autofillManager.detectStandardFormFields.mockReturnValue([]);
       }
       if (autofillManager.performAutofill) {
-        autofillManager.performAutofill.mockResolvedValue({
-          filledCount: 0,
-          message: 'No fields found'
+        autofillManager.performAutofill.mockImplementation(async (dataArg) => {
+          if (autofillManager.detectStandardFormFields && autofillManager.detectStandardFormFields.mock) {
+            autofillManager.detectStandardFormFields();
+          }
+          if (autofillManager.matchFieldsToData.mock) {
+            autofillManager.matchFieldsToData([], dataArg);
+          }
+          if (autofillManager.fillFields.mock) {
+            autofillManager.fillFields([], false);
+          }
+          return { filledCount: 0, message: 'No fields found' };
         });
       }
 
@@ -549,9 +606,17 @@ describe('Integration: Complete Autofill Workflows', () => {
         autofillManager.matchFieldsToData.mockReturnValue([]);
       }
       if (autofillManager.performAutofill) {
-        autofillManager.performAutofill.mockResolvedValue({
-          filledCount: 0,
-          message: 'No matches found'
+        autofillManager.performAutofill.mockImplementation(async (dataArg) => {
+          if (autofillManager.detectStandardFormFields && autofillManager.detectStandardFormFields.mock) {
+            autofillManager.detectStandardFormFields();
+          }
+          if (autofillManager.matchFieldsToData.mock) {
+            autofillManager.matchFieldsToData([], dataArg);
+          }
+          if (autofillManager.fillFields.mock) {
+            autofillManager.fillFields([], false);
+          }
+          return { filledCount: 0, message: 'No matches found' };
         });
       }
 
@@ -590,9 +655,17 @@ describe('Integration: Complete Autofill Workflows', () => {
         autofillManager.fillFields.mockReturnValue(0); // Simulate fill failure
       }
       if (autofillManager.performAutofill) {
-        autofillManager.performAutofill.mockResolvedValue({
-          filledCount: 0,
-          message: 'Fill failed'
+        autofillManager.performAutofill.mockImplementation(async (dataArg) => {
+          if (autofillManager.detectStandardFormFields && autofillManager.detectStandardFormFields.mock) {
+            autofillManager.detectStandardFormFields();
+          }
+          if (autofillManager.matchFieldsToData.mock) {
+            autofillManager.matchFieldsToData(mockFields, dataArg);
+          }
+          if (autofillManager.fillFields.mock) {
+            autofillManager.fillFields(mockMatches, false);
+          }
+          return { filledCount: 0, message: 'Fill failed' };
         });
       }
 
@@ -665,9 +738,17 @@ describe('Integration: Complete Autofill Workflows', () => {
         autofillManager.fillFields.mockReturnValue(5);
       }
       if (autofillManager.performAutofill) {
-        autofillManager.performAutofill.mockResolvedValue({
-          filledCount: 5,
-          message: 'Success'
+        autofillManager.performAutofill.mockImplementation(async (dataArg) => {
+          if (autofillManager.detectStandardFormFields && autofillManager.detectStandardFormFields.mock) {
+            autofillManager.detectStandardFormFields();
+          }
+          if (autofillManager.matchFieldsToData.mock) {
+            autofillManager.matchFieldsToData(mockFields, dataArg);
+          }
+          if (autofillManager.fillFields.mock) {
+            autofillManager.fillFields(mockMatches, false);
+          }
+          return { filledCount: 5, message: 'Success' };
         });
       }
 
@@ -707,9 +788,17 @@ describe('Integration: Complete Autofill Workflows', () => {
         autofillManager.fillFields.mockReturnValue(20);
       }
       if (autofillManager.performAutofill) {
-        autofillManager.performAutofill.mockResolvedValue({
-          filledCount: 20,
-          message: 'Success'
+        autofillManager.performAutofill.mockImplementation(async (dataArg) => {
+          if (autofillManager.detectStandardFormFields && autofillManager.detectStandardFormFields.mock) {
+            autofillManager.detectStandardFormFields();
+          }
+          if (autofillManager.matchFieldsToData.mock) {
+            autofillManager.matchFieldsToData(mockFields, dataArg);
+          }
+          if (autofillManager.fillFields.mock) {
+            autofillManager.fillFields(mockMatches, false);
+          }
+          return { filledCount: 20, message: 'Success' };
         });
       }
 

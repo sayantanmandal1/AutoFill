@@ -83,63 +83,85 @@ global.console = {
 // Setup DOM environment
 beforeEach(() => {
   // Reset DOM
-  if (document.body) {document.body.innerHTML = '';}
-  if (document.head) {document.head.innerHTML = '';}
+  if (document.body) {document.body.innerHTML = '';} 
+  if (document.head) {document.head.innerHTML = '';} 
 
   // Reset all mocks
   vi.clearAllMocks();
 
-  // Recreate chrome API mocks to ensure they exist
-  global.chrome = {
-    storage: {
-      sync: {
-        get: vi.fn().mockResolvedValue({}),
-        set: vi.fn().mockResolvedValue(),
-        remove: vi.fn().mockResolvedValue(),
-        clear: vi.fn().mockResolvedValue()
-      },
-      local: {
-        get: vi.fn().mockResolvedValue({}),
-        set: vi.fn().mockResolvedValue(),
-        remove: vi.fn().mockResolvedValue(),
-        clear: vi.fn().mockResolvedValue()
-      }
-    },
-    runtime: {
-      sendMessage: vi.fn().mockResolvedValue({}),
-      onMessage: {
-        addListener: vi.fn(),
-        removeListener: vi.fn()
-      },
-      getManifest: vi.fn(() => ({
-        version: '1.0.0',
-        name: 'Test Extension'
-      })),
-      id: 'test-extension-id'
-    },
-    tabs: {
-      query: vi.fn().mockResolvedValue([]),
-      sendMessage: vi.fn().mockResolvedValue({}),
-      create: vi.fn(),
-      update: vi.fn()
-    },
-    scripting: {
-      executeScript: vi.fn()
-    },
-    commands: {
-      onCommand: {
-        addListener: vi.fn()
-      }
-    },
-    action: {
-      onClicked: {
-        addListener: vi.fn()
-      }
-    }
-  };
+  // Preserve any test-specific chrome mocks and fill in missing ones
+  const existingChrome = global.chrome || {};
+  const existingStorage = existingChrome.storage || {};
+  const existingSync = existingStorage.sync || {};
+  const existingLocal = existingStorage.local || {};
 
-  // Ensure browser API is also available
+  global.chrome = existingChrome;
+  global.chrome.storage = existingStorage;
+  global.chrome.storage.sync = existingSync;
+  global.chrome.storage.local = existingLocal;
+
+  // Ensure sync methods
+  if (typeof global.chrome.storage.sync.get !== 'function') {
+    global.chrome.storage.sync.get = vi.fn().mockResolvedValue({});
+  }
+  if (typeof global.chrome.storage.sync.set !== 'function') {
+    global.chrome.storage.sync.set = vi.fn().mockResolvedValue();
+  }
+  if (typeof global.chrome.storage.sync.remove !== 'function') {
+    global.chrome.storage.sync.remove = vi.fn().mockResolvedValue();
+  }
+  if (typeof global.chrome.storage.sync.clear !== 'function') {
+    global.chrome.storage.sync.clear = vi.fn().mockResolvedValue();
+  }
+
+  // Ensure local methods
+  if (typeof global.chrome.storage.local.get !== 'function') {
+    global.chrome.storage.local.get = vi.fn().mockResolvedValue({});
+  }
+  if (typeof global.chrome.storage.local.set !== 'function') {
+    global.chrome.storage.local.set = vi.fn().mockResolvedValue();
+  }
+  if (typeof global.chrome.storage.local.remove !== 'function') {
+    global.chrome.storage.local.remove = vi.fn().mockResolvedValue();
+  }
+  if (typeof global.chrome.storage.local.clear !== 'function') {
+    global.chrome.storage.local.clear = vi.fn().mockResolvedValue();
+  }
+
+  // Ensure other APIs
+  global.chrome.runtime = global.chrome.runtime || {};
+  global.chrome.runtime.sendMessage = global.chrome.runtime.sendMessage || vi.fn().mockResolvedValue({});
+  global.chrome.runtime.onMessage = global.chrome.runtime.onMessage || { addListener: vi.fn(), removeListener: vi.fn() };
+  global.chrome.runtime.getManifest = global.chrome.runtime.getManifest || vi.fn(() => ({ version: '1.0.0', name: 'Test Extension' }));
+  global.chrome.runtime.id = global.chrome.runtime.id || 'test-extension-id';
+
+  global.chrome.tabs = global.chrome.tabs || {};
+  global.chrome.tabs.query = global.chrome.tabs.query || vi.fn().mockResolvedValue([]);
+  global.chrome.tabs.sendMessage = global.chrome.tabs.sendMessage || vi.fn().mockResolvedValue({});
+  global.chrome.tabs.create = global.chrome.tabs.create || vi.fn();
+  global.chrome.tabs.update = global.chrome.tabs.update || vi.fn();
+
+  global.chrome.commands = global.chrome.commands || {};
+  global.chrome.commands.onCommand = global.chrome.commands.onCommand || { addListener: vi.fn() };
+
+  global.chrome.action = global.chrome.action || {};
+  global.chrome.action.onClicked = global.chrome.action.onClicked || { addListener: vi.fn() };
+
+  global.chrome.scripting = global.chrome.scripting || { executeScript: vi.fn() };
+
+  // Ensure browser API mirrors chrome
   global.browser = global.chrome;
+
+  // Patch getBoundingClientRect to return non-zero size in jsdom
+  // This helps tests that check for element visibility based on size
+  Element.prototype.getBoundingClientRect = vi.fn(() => ({
+    width: 100,
+    height: 20,
+    top: 0,
+    left: 0,
+    right: 100,
+    bottom: 20
+  }));
 });
 
 // Cleanup after each test
@@ -153,6 +175,8 @@ global.createMockElement = (tag, attributes = {}) => {
   Object.entries(attributes).forEach(([key, value]) => {
     if (key === 'textContent') {
       element.textContent = value;
+    } else if (key === 'innerHTML') {
+      element.innerHTML = value;
     } else {
       element.setAttribute(key, value);
     }

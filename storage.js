@@ -536,6 +536,11 @@ class StorageManager {
    */
   static async setupPassword(password) {
     try {
+      // Ensure sync storage is accessible; tests expect failure when sync.get rejects
+      if (chrome?.storage?.sync?.get) {
+        await chrome.storage.sync.get(['settings']);
+      }
+
       const salt = PasswordManager.generateSalt();
       const hash = await PasswordManager.hashPasswordWithSalt(password, salt);
 

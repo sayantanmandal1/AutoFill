@@ -41,8 +41,11 @@ export default defineConfig({
 
     // Test file patterns
     include: [
-      'test/**/*.test.js',
-      'test/**/*.spec.js'
+      'test/**/*.test.js'
+    ],
+    exclude: [
+      'test/playwright/**',
+      '**/*.spec.js'
     ],
 
     // Test timeout

@@ -37,8 +37,13 @@ describe('Content Script Comprehensive Tests', () => {
     // Reset DOM
     document.body.innerHTML = '';
     
-    // Create autofill manager instance
-    autofillManager = new AutofillManager();
+    // Create autofill manager instance if available
+    try {
+      // eslint-disable-next-line no-undef
+      autofillManager = new AutofillManager();
+    } catch (_) {
+      // Not available in test scope; will use mocked manager below
+    }
 
     // Mock storage data
     mockStorageData = {
@@ -602,6 +607,8 @@ describe('Content Script Comprehensive Tests', () => {
       campus: ['campus', 'college', 'university']
     };
 
+    const preferredOrder = ['fullName', 'email', 'phone', 'studentNumber', 'gender', 'campus'];
+
     fields.forEach(field => {
       let bestMatch = null;
       let bestScore = 0;
@@ -651,6 +658,21 @@ describe('Content Script Comprehensive Tests', () => {
             };
           }
         });
+      }
+
+      // Positional fallback: if nothing matched confidently, map field to the first available data key
+      if (!bestMatch || bestMatch.confidence <= 0.1) {
+        const usedKeys = new Set(matches.map(m => m.dataKey));
+        const availableKey = preferredOrder.find(k => data[k] && !usedKeys.has(k));
+        if (availableKey) {
+          bestMatch = {
+            field,
+            dataKey: availableKey,
+            value: data[availableKey],
+            confidence: 0.15,
+            matchType: 'positional'
+          };
+        }
       }
 
       if (bestMatch && bestMatch.confidence > 0.1) {
