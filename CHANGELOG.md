@@ -5,6 +5,28 @@ All notable changes to the Job Application Autofill Extension will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.1] - 2025-08-11
+
+### 📦 Other Changes
+
+- kk ([8a3d88e](../../commit/8a3d88e))
+- mm ([ba4f1bd](../../commit/ba4f1bd))
+- y ([8bde948](../../commit/8bde948))
+- auto release ([2f4e5ba](../../commit/2f4e5ba))
+- yes ([d994dc2](../../commit/d994dc2))
+- mm ([520bac2](../../commit/520bac2))
+- cicd ([034c973](../../commit/034c973))
+- changes ([1451017](../../commit/1451017))
+- yes ([fb7ae3a](../../commit/fb7ae3a))
+- yes ([37bffd1](../../commit/37bffd1))
+- yml ([c26639d](../../commit/c26639d))
+- cicd ([5c5f6aa](../../commit/5c5f6aa))
+- ch ([e837b9e](../../commit/e837b9e))
+- l ([d65fde9](../../commit/d65fde9))
+- yes ([ae6c7ab](../../commit/ae6c7ab))
+- first ([1fad69b](../../commit/1fad69b))
+
+
 ## [1.0.0] - 2025-08-10
 
 ### 🎉 Initial Release

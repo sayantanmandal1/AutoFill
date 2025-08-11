@@ -1,6 +1,6 @@
 {
   "name": "job-application-autofill-extension",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "A powerful Chrome/Brave browser extension for autofilling job applications and forms",
   "main": "background.js",
   "scripts": {
@@ -33,7 +33,6 @@
     "version:increment": "node scripts/version-manager.js increment",
     "version:release": "node scripts/version-manager.js release",
     "release:notes": "node scripts/changelog-generator.js release-notes",
-
     "monitor:dashboard": "node scripts/monitoring-dashboard.js generate",
     "notify:success": "node scripts/notification-manager.js success",
     "notify:failure": "node scripts/notification-manager.js failure",
@@ -42,7 +41,6 @@
     "email:critical": "node scripts/email-notification-service.js critical",
     "email:summary": "node scripts/email-notification-service.js summary",
     "issues:deployment-failure": "node scripts/github-issue-manager.js deployment-failure",
-
     "issues:test-failure": "node scripts/github-issue-manager.js test-failure",
     "security:setup": "node scripts/setup-security.js run",
     "security:validate": "node scripts/credential-manager.js validate",
