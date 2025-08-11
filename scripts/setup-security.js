@@ -1,327 +1,380 @@
 #!/usr/bin/env node
 
 /**
- * Security Setup Script
+ * Security and Credential Management Setup Script
  * 
- * This script helps set up the security environment for the Chrome Extension
- * deployment pipeline, including credential validation and security configuration.
+ * This script helps set up secure credential management for the Chrome Extension
+ * CI/CD pipeline, including GitHub secrets configuration and security best practices.
  */
 
 const fs = require('fs');
 const path = require('path');
-const CredentialManager = require('./credential-manager');
-const APIKeyRotationManager = require('./api-key-rotation');
+const crypto = require('crypto');
 
-class SecuritySetup {
+class SecurityManager {
   constructor() {
-    this.credentialManager = new CredentialManager();
-    this.rotationManager = new APIKeyRotationManager();
-    this.setupComplete = false;
-  }
-
-  /**
-   * Run complete security setup process
-   */
-  async runSetup() {
-    console.log('🔐 Chrome Extension Security Setup\n');
-    console.log('This script will help you set up security for your deployment pipeline.\n');
-
-    try {
-      // Step 1: Validate current environment
-      console.log('Step 1: Validating current environment...');
-      const validation = this.credentialManager.validateCredentials();
-      this.displayValidationResults(validation);
-
-      // Step 2: Test Chrome Web Store credentials if available
-      if (validation.valid) {
-        console.log('\nStep 2: Testing Chrome Web Store API credentials...');
-        const apiTest = await this.credentialManager.testChromeStoreCredentials();
-        this.displayAPITestResults(apiTest);
-      } else {
-        console.log('\nStep 2: Skipping API test - missing required credentials');
-        this.displayCredentialSetupInstructions();
-      }
-
-      // Step 3: Check security configuration files
-      console.log('\nStep 3: Checking security configuration files...');
-      this.checkSecurityFiles();
-
-      // Step 4: Generate security reports
-      console.log('\nStep 4: Generating security reports...');
-      await this.generateSecurityReports();
-
-      // Step 5: Display next steps
-      console.log('\nStep 5: Next steps and recommendations...');
-      this.displayNextSteps(validation);
-
-      this.setupComplete = true;
-      console.log('\n✅ Security setup completed successfully!');
-
-    } catch (error) {
-      console.error('\n❌ Security setup failed:', error.message);
-      console.log('\nTroubleshooting:');
-      console.log('- Ensure all required dependencies are installed (npm ci)');
-      console.log('- Check that you have proper permissions');
-      console.log('- Review the error message above for specific issues');
-      process.exit(1);
-    }
-  }
-
-  /**
-   * Display credential validation results
-   */
-  displayValidationResults(validation) {
-    console.log(`\nCredential Validation Results:`);
-    console.log(`Status: ${validation.valid ? '✅ Valid' : '❌ Invalid'}`);
-    console.log(`Summary: ${validation.summary}`);
-
-    if (validation.required.present.length > 0) {
-      console.log(`\n✅ Present required credentials:`);
-      validation.required.present.forEach(cred => console.log(`  - ${cred}`));
-    }
-
-    if (validation.required.missing.length > 0) {
-      console.log(`\n❌ Missing required credentials:`);
-      validation.required.missing.forEach(cred => console.log(`  - ${cred}`));
-    }
-
-    if (validation.warnings.length > 0) {
-      console.log(`\n⚠️  Warnings:`);
-      validation.warnings.forEach(warning => console.log(`  - ${warning}`));
-    }
-
-    if (validation.optional.present.length > 0) {
-      console.log(`\n📋 Optional credentials present:`);
-      validation.optional.present.forEach(cred => console.log(`  - ${cred}`));
-    }
-  }
-
-  /**
-   * Display API test results
-   */
-  displayAPITestResults(apiTest) {
-    if (apiTest.success) {
-      console.log('✅ Chrome Web Store API credentials are working correctly');
-      if (apiTest.tokenExpiry) {
-        console.log(`Token expires: ${apiTest.tokenExpiry.toISOString()}`);
-      }
-    } else {
-      console.log('❌ Chrome Web Store API test failed:', apiTest.error);
-      if (apiTest.details) {
-        console.log('Details:', JSON.stringify(apiTest.details, null, 2));
-      }
-    }
-  }
-
-  /**
-   * Display credential setup instructions
-   */
-  displayCredentialSetupInstructions() {
-    console.log('\n📋 Credential Setup Instructions:');
-    console.log('\nTo set up Chrome Web Store API credentials:');
-    console.log('1. Go to Google Cloud Console (https://console.cloud.google.com)');
-    console.log('2. Create a new project or select existing project');
-    console.log('3. Enable Chrome Web Store API');
-    console.log('4. Create OAuth2 credentials (Desktop application type)');
-    console.log('5. Generate refresh token using OAuth2 playground');
-    console.log('6. Add credentials to GitHub Repository Secrets:');
-    console.log('   - CHROME_CLIENT_ID');
-    console.log('   - CHROME_CLIENT_SECRET');
-    console.log('   - CHROME_REFRESH_TOKEN');
-    console.log('   - CHROME_EXTENSION_ID');
-    console.log('\nFor detailed instructions, see: docs/CHROME_WEB_STORE_SETUP.md');
-  }
-
-  /**
-   * Check security configuration files
-   */
-  checkSecurityFiles() {
-    const securityFiles = [
-      { path: '.audit-ci.json', description: 'Dependency audit configuration' },
-      { path: 'docs/SECURITY_BEST_PRACTICES.md', description: 'Security documentation' },
-      { path: '.github/workflows/ci-cd.yml', description: 'CI/CD pipeline with security scanning' },
-      { path: 'scripts/credential-manager.js', description: 'Credential management script' },
-      { path: 'scripts/api-key-rotation.js', description: 'API key rotation script' }
+    this.requiredSecrets = [
+      'CHROME_EXTENSION_ID',
+      'CHROME_CLIENT_ID', 
+      'CHROME_CLIENT_SECRET',
+      'CHROME_REFRESH_TOKEN'
     ];
-
-    console.log('\nSecurity Configuration Files:');
-    for (const file of securityFiles) {
-      const exists = fs.existsSync(file.path);
-      console.log(`${exists ? '✅' : '❌'} ${file.path} - ${file.description}`);
-    }
-  }
-
-  /**
-   * Generate security reports
-   */
-  async generateSecurityReports() {
-    try {
-      // Generate credential validation report
-      const reportPath = 'security-setup-report.json';
-      await this.credentialManager.exportValidationReport(reportPath);
-      console.log(`✅ Security report generated: ${reportPath}`);
-
-      // Generate rotation schedule
-      const schedule = this.rotationManager.generateRotationSchedule();
-      const schedulePath = 'credential-rotation-schedule.json';
-      fs.writeFileSync(schedulePath, JSON.stringify(schedule, null, 2));
-      console.log(`✅ Rotation schedule generated: ${schedulePath}`);
-
-    } catch (error) {
-      console.log(`⚠️  Could not generate all reports: ${error.message}`);
-    }
-  }
-
-  /**
-   * Display next steps based on setup results
-   */
-  displayNextSteps(validation) {
-    console.log('\n📋 Recommended Next Steps:');
-
-    if (!validation.valid) {
-      console.log('\n🔴 HIGH PRIORITY:');
-      console.log('1. Set up missing Chrome Web Store API credentials');
-      console.log('2. Add credentials to GitHub Repository Secrets');
-      console.log('3. Test credentials using: node scripts/credential-manager.js test');
-    } else {
-      console.log('\n🟢 CREDENTIALS CONFIGURED:');
-      console.log('1. Review security best practices: docs/SECURITY_BEST_PRACTICES.md');
-      console.log('2. Set up credential rotation reminders');
-      console.log('3. Configure optional notification credentials');
-    }
-
-    console.log('\n🔵 SECURITY MAINTENANCE:');
-    console.log('1. Schedule monthly security reviews');
-    console.log('2. Set up credential rotation (every 6 months for refresh tokens)');
-    console.log('3. Monitor security scan results in CI/CD pipeline');
-    console.log('4. Keep dependencies updated regularly');
-
-    console.log('\n🟡 OPTIONAL ENHANCEMENTS:');
-    console.log('1. Set up email notifications (SMTP credentials)');
-    console.log('2. Configure Slack notifications (webhook URL)');
-    console.log('3. Set up monitoring dashboard');
-    console.log('4. Configure automated issue creation for failures');
-
-    console.log('\n📚 USEFUL COMMANDS:');
-    console.log('- Validate credentials: node scripts/credential-manager.js validate');
-    console.log('- Test API access: node scripts/credential-manager.js test');
-    console.log('- Check rotation needs: node scripts/api-key-rotation.js check');
-    console.log('- Generate OAuth instructions: node scripts/api-key-rotation.js oauth-instructions');
-    console.log('- Run security audit: npm audit --audit-level=moderate');
-  }
-
-  /**
-   * Interactive setup mode
-   */
-  async interactiveSetup() {
-    console.log('🔐 Interactive Security Setup\n');
     
-    // This would implement an interactive CLI setup
-    // For now, we'll just run the automated setup
-    console.log('Running automated setup...\n');
-    await this.runSetup();
+    this.securityConfig = {
+      apiKeyRotationDays: 90,
+      secretsValidationEnabled: true,
+      dependencyAuditLevel: 'moderate',
+      securityScanEnabled: true
+    };
   }
 
   /**
-   * Validate security environment for CI/CD
+   * Generate secure configuration template for GitHub secrets
    */
-  validateCIEnvironment() {
-    console.log('🔍 Validating CI/CD Security Environment\n');
+  generateSecretsTemplate() {
+    const template = {
+      secrets: {
+        CHROME_EXTENSION_ID: {
+          description: "Chrome Web Store Extension ID",
+          required: true,
+          example: "abcdefghijklmnopqrstuvwxyz123456",
+          setup: "Get from Chrome Web Store Developer Dashboard"
+        },
+        CHROME_CLIENT_ID: {
+          description: "Google OAuth Client ID for Chrome Web Store API",
+          required: true,
+          example: "123456789-abcdefghijklmnop.apps.googleusercontent.com",
+          setup: "Create OAuth credentials in Google Cloud Console"
+        },
+        CHROME_CLIENT_SECRET: {
+          description: "Google OAuth Client Secret",
+          required: true,
+          sensitive: true,
+          setup: "From Google Cloud Console OAuth credentials"
+        },
+        CHROME_REFRESH_TOKEN: {
+          description: "OAuth Refresh Token for Chrome Web Store API",
+          required: true,
+          sensitive: true,
+          setup: "Generate using OAuth flow with Chrome Web Store API scope"
+        },
+        NOTIFICATION_EMAIL: {
+          description: "Email for deployment notifications",
+          required: false,
+          example: "developer@example.com"
+        }
+      },
+      repositorySecrets: {
+        setup: [
+          "1. Go to GitHub repository Settings > Secrets and variables > Actions",
+          "2. Click 'New repository secret' for each required secret",
+          "3. Use the exact secret names listed above",
+          "4. Paste the corresponding values from your Chrome Web Store setup"
+        ]
+      }
+    };
 
-    const validation = this.credentialManager.validateCredentials();
+    const templatePath = path.join(__dirname, '..', 'GITHUB_SECRETS_TEMPLATE.json');
+    fs.writeFileSync(templatePath, JSON.stringify(template, null, 2));
+    
+    console.log('✅ GitHub secrets template created at:', templatePath);
+    return template;
+  }
+
+  /**
+   * Create security best practices documentation
+   */
+  createSecurityDocumentation() {
+    const securityDoc = `# Security Best Practices
+
+## Overview
+This document outlines security best practices for the Job Application Autofill Chrome Extension development and deployment.
+
+## Credential Management
+
+### GitHub Secrets Configuration
+All sensitive credentials must be stored as GitHub repository secrets:
+
+- \`CHROME_EXTENSION_ID\`: Your Chrome Web Store extension ID
+- \`CHROME_CLIENT_ID\`: Google OAuth client ID
+- \`CHROME_CLIENT_SECRET\`: Google OAuth client secret  
+- \`CHROME_REFRESH_TOKEN\`: OAuth refresh token
+
+### API Key Rotation
+- **Frequency**: Rotate API keys every ${this.securityConfig.apiKeyRotationDays} days
+- **Process**: Use the automated rotation script in \`scripts/api-key-rotation.js\`
+- **Monitoring**: Set up alerts for key expiration
+
+## Development Security
+
+### Dependency Management
+- Run \`npm audit\` regularly to check for vulnerabilities
+- Use \`npm audit fix\` to automatically fix issues
+- Set audit level to '${this.securityConfig.dependencyAuditLevel}' in CI/CD
+
+### Code Security
+- Never commit sensitive data to version control
+- Use environment variables for configuration
+- Validate all user inputs in the extension
+- Implement Content Security Policy (CSP) headers
+
+### Extension Security
+- Request minimal permissions in manifest.json
+- Validate all external data sources
+- Use HTTPS for all API communications
+- Implement proper error handling to avoid information leakage
+
+## CI/CD Security
+
+### GitHub Actions Security
+- Use pinned action versions (e.g., \`@v4\` instead of \`@main\`)
+- Limit workflow permissions to minimum required
+- Use \`secrets.GITHUB_TOKEN\` for GitHub API access
+- Enable branch protection rules
+
+### Build Security
+- Scan dependencies for vulnerabilities before deployment
+- Validate extension package integrity
+- Use secure build environments
+- Implement automated security testing
+
+## Monitoring and Alerting
+
+### Security Monitoring
+- Monitor for failed authentication attempts
+- Track API usage patterns
+- Set up alerts for unusual deployment activity
+- Log all security-related events
+
+### Incident Response
+1. **Detection**: Automated monitoring alerts
+2. **Assessment**: Evaluate security impact
+3. **Containment**: Revoke compromised credentials
+4. **Recovery**: Deploy fixes and rotate keys
+5. **Lessons Learned**: Update security practices
+
+## Compliance
+
+### Data Privacy
+- Follow Chrome Web Store privacy policies
+- Implement proper data handling practices
+- Document data collection and usage
+- Provide clear privacy policy to users
+
+### Security Audits
+- Conduct regular security reviews
+- Perform penetration testing
+- Review third-party dependencies
+- Update security practices based on findings
+
+## Emergency Procedures
+
+### Credential Compromise
+1. Immediately revoke compromised credentials
+2. Generate new credentials
+3. Update GitHub secrets
+4. Redeploy with new credentials
+5. Monitor for unauthorized access
+
+### Security Incident
+1. Assess the scope of the incident
+2. Contain the security breach
+3. Notify relevant stakeholders
+4. Implement fixes
+5. Document lessons learned
+
+## Tools and Resources
+
+### Security Tools
+- \`npm audit\`: Dependency vulnerability scanning
+- \`eslint-plugin-security\`: Code security linting
+- GitHub Security Advisories: Vulnerability notifications
+- Dependabot: Automated dependency updates
+
+### Documentation
+- [Chrome Extension Security](https://developer.chrome.com/docs/extensions/mv3/security/)
+- [GitHub Actions Security](https://docs.github.com/en/actions/security-guides)
+- [OAuth 2.0 Security](https://tools.ietf.org/html/rfc6749#section-10)
+`;
+
+    const docPath = path.join(__dirname, '..', 'docs', 'SECURITY_BEST_PRACTICES.md');
+    fs.writeFileSync(docPath, securityDoc);
+    
+    console.log('✅ Security documentation created at:', docPath);
+    return docPath;
+  }
+
+  /**
+   * Validate current security configuration
+   */
+  validateSecuritySetup() {
     const issues = [];
-
-    // Check required credentials
-    if (!validation.valid) {
-      issues.push({
-        severity: 'critical',
-        message: 'Missing required Chrome Web Store API credentials',
-        details: validation.required.missing
-      });
-    }
-
-    // Check for credential format issues
-    if (validation.warnings.length > 0) {
-      issues.push({
-        severity: 'warning',
-        message: 'Credential format warnings detected',
-        details: validation.warnings
-      });
-    }
-
-    // Check security files
-    const requiredFiles = ['.audit-ci.json', 'docs/SECURITY_BEST_PRACTICES.md'];
-    const missingFiles = requiredFiles.filter(file => !fs.existsSync(file));
     
-    if (missingFiles.length > 0) {
-      issues.push({
-        severity: 'warning',
-        message: 'Missing security configuration files',
-        details: missingFiles
-      });
-    }
-
-    // Display results
-    if (issues.length === 0) {
-      console.log('✅ CI/CD security environment is properly configured');
-      return true;
-    } else {
-      console.log('❌ CI/CD security environment has issues:');
-      issues.forEach(issue => {
-        console.log(`\n${issue.severity.toUpperCase()}: ${issue.message}`);
-        if (issue.details) {
-          issue.details.forEach(detail => console.log(`  - ${detail}`));
+    // Check for sensitive files in git
+    const gitignorePath = path.join(__dirname, '..', '.gitignore');
+    if (fs.existsSync(gitignorePath)) {
+      const gitignore = fs.readFileSync(gitignorePath, 'utf8');
+      const sensitivePatterns = [
+        '*.key',
+        '*.pem',
+        '.env',
+        'secrets.json',
+        'credentials.json'
+      ];
+      
+      sensitivePatterns.forEach(pattern => {
+        if (!gitignore.includes(pattern)) {
+          issues.push(`Missing .gitignore pattern: ${pattern}`);
         }
       });
-      return false;
+    } else {
+      issues.push('Missing .gitignore file');
+    }
+
+    // Check package.json for security scripts
+    const packagePath = path.join(__dirname, '..', 'package.json');
+    if (fs.existsSync(packagePath)) {
+      const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
+      
+      if (!packageJson.scripts || !packageJson.scripts.audit) {
+        issues.push('Missing npm audit script in package.json');
+      }
+    }
+
+    // Check for security-related dependencies
+    const securityDeps = ['eslint-plugin-security'];
+    securityDeps.forEach(dep => {
+      try {
+        require.resolve(dep);
+      } catch (error) {
+        issues.push(`Missing security dependency: ${dep}`);
+      }
+    });
+
+    return {
+      isSecure: issues.length === 0,
+      issues: issues,
+      recommendations: this.getSecurityRecommendations(issues)
+    };
+  }
+
+  /**
+   * Get security recommendations based on issues found
+   */
+  getSecurityRecommendations(issues) {
+    const recommendations = [];
+    
+    if (issues.some(issue => issue.includes('.gitignore'))) {
+      recommendations.push('Update .gitignore to exclude sensitive files');
+    }
+    
+    if (issues.some(issue => issue.includes('audit script'))) {
+      recommendations.push('Add "audit": "npm audit --audit-level moderate" to package.json scripts');
+    }
+    
+    if (issues.some(issue => issue.includes('security dependency'))) {
+      recommendations.push('Install security-related dependencies: npm install --save-dev eslint-plugin-security');
+    }
+    
+    recommendations.push('Set up GitHub repository secrets for Chrome Web Store API');
+    recommendations.push('Enable Dependabot for automated security updates');
+    recommendations.push('Configure branch protection rules');
+    
+    return recommendations;
+  }
+
+  /**
+   * Generate API key rotation reminder
+   */
+  generateRotationReminder() {
+    const rotationDate = new Date();
+    rotationDate.setDate(rotationDate.getDate() + this.securityConfig.apiKeyRotationDays);
+    
+    const reminder = {
+      nextRotationDate: rotationDate.toISOString().split('T')[0],
+      rotationFrequency: `${this.securityConfig.apiKeyRotationDays} days`,
+      keysToRotate: [
+        'Chrome Web Store API credentials',
+        'Google OAuth tokens',
+        'GitHub personal access tokens (if used)'
+      ],
+      rotationProcess: [
+        '1. Generate new credentials in Google Cloud Console',
+        '2. Update GitHub repository secrets',
+        '3. Test deployment with new credentials',
+        '4. Revoke old credentials',
+        '5. Update rotation schedule'
+      ]
+    };
+
+    const reminderPath = path.join(__dirname, '..', 'API_KEY_ROTATION_SCHEDULE.json');
+    fs.writeFileSync(reminderPath, JSON.stringify(reminder, null, 2));
+    
+    console.log('✅ API key rotation reminder created at:', reminderPath);
+    return reminder;
+  }
+
+  /**
+   * Run complete security setup
+   */
+  async setupSecurity() {
+    console.log('🔒 Setting up security and credential management...\n');
+    
+    try {
+      // Generate templates and documentation
+      this.generateSecretsTemplate();
+      this.createSecurityDocumentation();
+      this.generateRotationReminder();
+      
+      // Validate current setup
+      const validation = this.validateSecuritySetup();
+      
+      console.log('\n📋 Security Validation Results:');
+      console.log(`Status: ${validation.isSecure ? '✅ Secure' : '⚠️  Issues Found'}`);
+      
+      if (validation.issues.length > 0) {
+        console.log('\n🚨 Issues Found:');
+        validation.issues.forEach(issue => console.log(`  - ${issue}`));
+      }
+      
+      if (validation.recommendations.length > 0) {
+        console.log('\n💡 Recommendations:');
+        validation.recommendations.forEach(rec => console.log(`  - ${rec}`));
+      }
+      
+      console.log('\n✅ Security setup completed!');
+      console.log('\nNext steps:');
+      console.log('1. Review SECURITY_BEST_PRACTICES.md');
+      console.log('2. Set up GitHub repository secrets using GITHUB_SECRETS_TEMPLATE.json');
+      console.log('3. Configure API key rotation schedule');
+      console.log('4. Enable security monitoring and alerts');
+      
+      return {
+        success: true,
+        validation: validation
+      };
+      
+    } catch (error) {
+      console.error('❌ Security setup failed:', error.message);
+      return {
+        success: false,
+        error: error.message
+      };
     }
   }
 }
 
-// CLI interface
+// Run security setup if called directly
 if (require.main === module) {
-  const setup = new SecuritySetup();
-  const command = process.argv[2];
-
-  switch (command) {
-    case 'run':
-    case 'setup':
-      setup.runSetup().catch(error => {
-        console.error('Setup failed:', error.message);
-        process.exit(1);
-      });
-      break;
-
-    case 'interactive':
-      setup.interactiveSetup().catch(error => {
-        console.error('Interactive setup failed:', error.message);
-        process.exit(1);
-      });
-      break;
-
-    case 'validate-ci':
-      const isValid = setup.validateCIEnvironment();
-      process.exit(isValid ? 0 : 1);
-      break;
-
-    default:
-      console.log(`
-Chrome Extension Security Setup
-
-Usage: node setup-security.js <command>
-
-Commands:
-  run, setup      Run automated security setup
-  interactive     Run interactive security setup
-  validate-ci     Validate CI/CD security environment
-
-Examples:
-  node scripts/setup-security.js run
-  node scripts/setup-security.js interactive
-  node scripts/setup-security.js validate-ci
-      `);
-      break;
-  }
+  const securityManager = new SecurityManager();
+  securityManager.setupSecurity()
+    .then(result => {
+      process.exit(result.success ? 0 : 1);
+    })
+    .catch(error => {
+      console.error('❌ Unexpected error:', error);
+      process.exit(1);
+    });
 }
 
-module.exports = SecuritySetup;
+module.exports = SecurityManager;

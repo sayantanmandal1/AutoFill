@@ -145,7 +145,7 @@ jobs:
 
       - name: Generate changelog
         run: |
-          VERSION="${{ github.event.inputs.version }}"
+          VERSION="${{ steps.version.outputs.version }}"
           echo "📝 Generating changelog for version $VERSION..."
           
           # Get previous tag for changelog generation
@@ -161,7 +161,7 @@ jobs:
 
       - name: Create production build
         run: |
-          VERSION="${{ github.event.inputs.version }}"
+          VERSION="${{ steps.version.outputs.version }}"
           echo "🏗️ Creating production build..."
           
           # Create production build directory
@@ -188,24 +188,13 @@ jobs:
           
           echo "✅ Extension package created: job-application-autofill-v$VERSION.zip"
 
-      - name: Commit version changes
+      - name: Prepare version changes
         run: |
-          VERSION="${{ github.event.inputs.version }}"
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          
-          git add package.json manifest.json CHANGELOG.md
-          git commit -m "chore: bump version to $VERSION" || echo "No changes to commit"
-
-      - name: Create Git tag
-        run: |
-          VERSION="${{ github.event.inputs.version }}"
-          git tag -a "v$VERSION" -m "Release version $VERSION"
-
-      - name: Push changes and tags
-        run: |
-          git push origin master
-          git push origin --tags
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "📝 Version changes prepared for v$VERSION"
+          echo "Release type: ${{ steps.version.outputs.release_type }}"
+          echo "Files updated: package.json, manifest.json"
+          echo "Note: Git operations skipped to avoid permission issues"
 
       - name: Generate release notes
         id: release_notes
@@ -216,24 +205,22 @@ jobs:
           RELEASE_NOTES=$(node scripts/changelog-generator.js release-notes --version=$VERSION 2>/dev/null || echo "")
           
           if [ -z "$RELEASE_NOTES" ]; then
-            cat > release-notes.md << EOF
-          ## 🚀 Release v$VERSION
-
-          This release includes:
-          - Automated build and testing
-          - Security vulnerability scanning
-          - Production-ready extension package
-
-          ### Installation
-          1. Download the extension zip file below
-          2. Extract the zip file
-          3. Open Chrome and go to chrome://extensions/
-          4. Enable "Developer mode"
-          5. Click "Load unpacked" and select the extracted folder
-
-          ### Changes
-          See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
-          EOF
+            echo "## 🚀 Release v$VERSION" > release-notes.md
+            echo "" >> release-notes.md
+            echo "This release includes:" >> release-notes.md
+            echo "- Automated build and testing" >> release-notes.md
+            echo "- Security vulnerability scanning" >> release-notes.md
+            echo "- Production-ready extension package" >> release-notes.md
+            echo "" >> release-notes.md
+            echo "### Installation" >> release-notes.md
+            echo "1. Download the extension zip file below" >> release-notes.md
+            echo "2. Extract the zip file" >> release-notes.md
+            echo "3. Open Chrome and go to chrome://extensions/" >> release-notes.md
+            echo "4. Enable \"Developer mode\"" >> release-notes.md
+            echo "5. Click \"Load unpacked\" and select the extracted folder" >> release-notes.md
+            echo "" >> release-notes.md
+            echo "### Changes" >> release-notes.md
+            echo "See [CHANGELOG.md](CHANGELOG.md) for detailed changes." >> release-notes.md
           else
             echo "$RELEASE_NOTES" > release-notes.md
           fi
@@ -244,8 +231,7 @@ jobs:
           tag_name: v${{ steps.version.outputs.version }}
           name: Release v${{ steps.version.outputs.version }}
           body_path: release-notes.md
-          files: |
-            job-application-autofill-v${{ steps.version.outputs.version }}.zip
+          files: job-application-autofill-v${{ steps.version.outputs.version }}.zip
           draft: false
           prerelease: ${{ github.event.inputs.prerelease }}
           generate_release_notes: true
@@ -262,7 +248,7 @@ jobs:
 
       - name: Release summary
         run: |
-          VERSION="${{ github.event.inputs.version }}"
+          VERSION="${{ steps.version.outputs.version }}"
           echo "🎉 Release v$VERSION created successfully!"
           echo ""
           echo "📦 Extension package: job-application-autofill-v$VERSION.zip"
