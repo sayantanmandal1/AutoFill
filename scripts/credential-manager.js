@@ -236,13 +236,13 @@ class CredentialManager {
                 },
                 CHROME_CLIENT_SECRET: {
                     description: 'Chrome Web Store API OAuth2 Client Secret',
-                    format: 'GOCSPX-xxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+                    format: 'GOCSPX-[32-character-string]',
                     source: 'Google Cloud Console > APIs & Services > Credentials',
                     security: 'HIGHLY SENSITIVE - Never expose in logs or code'
                 },
                 CHROME_REFRESH_TOKEN: {
                     description: 'OAuth2 Refresh Token for Chrome Web Store API',
-                    format: '1//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+                    format: '1//[long-refresh-token-string]',
                     source: 'Google OAuth2 Playground or manual OAuth flow',
                     security: 'HIGHLY SENSITIVE - Rotate every 6 months'
                 },

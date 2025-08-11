@@ -105,3 +105,10 @@ screenshots/
 .kiro/
 test-popup.html
 validate-browser-compatibility.js
+
+# Security and credential files
+.credential-backups/
+*-credentials.json
+*-tokens.json
+credential-*.json
+security-*.json
