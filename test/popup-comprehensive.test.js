@@ -18,7 +18,7 @@ describe('Popup Script Comprehensive Tests', () => {
         <input type="email" id="email" name="email" />
         <input type="tel" id="phone" name="phone" />
         <input type="text" id="student-number" name="studentNumber" />
-        <textarea id="custom-fields-container"></textarea>
+        <div id="custom-fields-container"></div>
         <select id="profile-select"></select>
         <input type="checkbox" id="auto-fill-enabled" />
         <input type="checkbox" id="password-protected" />
@@ -117,7 +117,7 @@ describe('Popup Script Comprehensive Tests', () => {
       disablePasswordProtection: vi.fn(),
       isDebugMode: vi.fn(() => false),
       debugLog: vi.fn(),
-      startPerformanceTimer: vi.fn(() => ({ operation: 'test', startTime: Date.now() })),
+      startPerformanceTimer: vi.fn((operation) => ({ operation, startTime: Date.now() })),
       endPerformanceTimer: vi.fn(() => 100)
     };
   });

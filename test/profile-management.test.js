@@ -29,30 +29,9 @@ describe('Profile Management', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Default mock behavior - use the actual default data structure
+    // Default mock behavior - return empty profiles for most tests
     mockStorage.sync.get.mockResolvedValue({
-      profiles: {
-        default: {
-          name: 'Default Profile',
-          data: {
-            fullName: 'Sayantan Mandal',
-            email: 'sayantan.22bce8533@vitapstudent.ac.in',
-            studentNumber: '22BCE8533',
-            phone: '6290464748',
-            tenthMarks: '95',
-            twelfthMarks: '75',
-            ugCgpa: '8.87',
-            gender: 'Male',
-            campus: 'VIT-AP',
-            leetcodeUrl: 'https://leetcode.com/u/sayonara1337/',
-            linkedinUrl: 'https://www.linkedin.com/in/sayantan-mandal-8a14b7202/',
-            githubUrl: 'https://github.com/sayantanmandal1',
-            resumeUrl: 'https://drive.google.com/file/d/1e_zGr0Ld9mUR9C1HLHjMGN8aV77l1jcO/view?usp=drive_link',
-            portfolioUrl: 'https://d1grz986bewgw4.cloudfront.net/',
-            customFields: {}
-          }
-        }
-      },
+      profiles: {},
       settings: {
         activeProfile: 'default',
         autoFillEnabled: false,
@@ -62,7 +41,8 @@ describe('Profile Management', () => {
         passwordSalt: ''
       }
     });
-
+    
+    // Mock successful set operations
     mockStorage.sync.set.mockResolvedValue();
     mockStorage.local.set.mockResolvedValue();
   });
@@ -168,6 +148,7 @@ describe('Profile Management', () => {
 
   describe('Profile Retrieval', () => {
     it('should retrieve active profile correctly', async () => {
+      // Mock the complete data structure that validateAndMergeData expects
       mockStorage.sync.get.mockResolvedValue({
         profiles: {
           default: {
@@ -180,7 +161,12 @@ describe('Profile Management', () => {
           }
         },
         settings: {
-          activeProfile: 'work'
+          activeProfile: 'work',
+          autoFillEnabled: false,
+          blacklistedDomains: [],
+          passwordProtected: false,
+          passwordHash: '',
+          passwordSalt: ''
         }
       });
 
@@ -201,7 +187,12 @@ describe('Profile Management', () => {
           default: { name: 'Default Profile', data: {} }
         },
         settings: {
-          activeProfile: 'nonexistent'
+          activeProfile: 'nonexistent',
+          autoFillEnabled: false,
+          blacklistedDomains: [],
+          passwordProtected: false,
+          passwordHash: '',
+          passwordSalt: ''
         }
       });
 
@@ -212,6 +203,20 @@ describe('Profile Management', () => {
 
   describe('Error Handling', () => {
     it('should handle storage errors during profile save', async () => {
+      // Mock getAllData to return empty structure
+      mockStorage.sync.get.mockResolvedValue({
+        profiles: {},
+        settings: {
+          activeProfile: 'default',
+          autoFillEnabled: false,
+          blacklistedDomains: [],
+          passwordProtected: false,
+          passwordHash: '',
+          passwordSalt: ''
+        }
+      });
+      
+      // Mock both storage methods to fail
       mockStorage.sync.set.mockRejectedValue(new Error('Storage full'));
       mockStorage.local.set.mockRejectedValue(new Error('Local storage full'));
 
@@ -225,6 +230,19 @@ describe('Profile Management', () => {
     });
 
     it('should fallback to local storage when sync fails', async () => {
+      // Mock getAllData to return empty structure
+      mockStorage.sync.get.mockResolvedValue({
+        profiles: {},
+        settings: {
+          activeProfile: 'default',
+          autoFillEnabled: false,
+          blacklistedDomains: [],
+          passwordProtected: false,
+          passwordHash: '',
+          passwordSalt: ''
+        }
+      });
+      
       mockStorage.sync.set.mockRejectedValue(new Error('Sync unavailable'));
       mockStorage.local.set.mockResolvedValue();
 
