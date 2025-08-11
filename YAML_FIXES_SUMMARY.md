@@ -7,22 +7,27 @@ This document summarizes all the fixes applied to the GitHub Actions workflow fi
 All workflow files have been updated to use `master` instead of `main` as the primary branch:
 
 ### 1. `.github/workflows/ci-cd.yml`
+
 - **Line 4-6**: Updated trigger branches from `[main, develop]` to `[master, develop]`
 - **Line 7**: Updated pull request target from `[main]` to `[master]`
 - **Line 340**: Updated docs deployment condition from `refs/heads/main` to `refs/heads/master`
 
 ### 2. `.github/workflows/docs-deploy.yml`
+
 - **Line 4**: Updated trigger branch from `[ main ]` to `[ master ]`
 
 ### 3. `.github/workflows/changelog-automation.yml`
+
 - **Line 67**: Updated git push target from `HEAD:main` to `HEAD:master`
 
 ### 4. `.github/workflows/chrome-store-deploy.yml`
+
 - **Line 171**: Updated PR condition from `target_commitish != 'main'` to `target_commitish != 'master'`
 
 ## Syntax Error Fixes
 
 ### 1. `.github/workflows/chrome-store-deploy.yml`
+
 - **Line 28**: Fixed environment name from `chrome-web-store` to `production` (GitHub Actions doesn't recognize `chrome-web-store` as a valid environment name)
 - **Line 32**: Added missing `outputs` section to the deploy job:
   ```yaml
@@ -54,6 +59,7 @@ These warnings are false positives - the secrets are properly configured and wil
 ## Validation Results
 
 All workflow files have been validated for:
+
 - ✅ Proper YAML syntax
 - ✅ Correct indentation
 - ✅ Complete job definitions
@@ -79,7 +85,9 @@ Before pushing these changes, consider:
 4. **Validate environment configurations** in GitHub repository settings
 
 ## Notes
+
 .
+
 - The `production` environment name in `chrome-store-deploy.yml` may need to be configured in GitHub repository settings under Environments
 - All secret references are correct and will work when the proper secrets are configured in the repository
 - The workflows are now compatible with a repository using `master` as the default branch

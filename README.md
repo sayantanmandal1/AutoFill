@@ -281,6 +281,16 @@ npm run test:watch
 - **Low Memory Usage**: ~2-3MB typical usage
 - **Optimized Caching**: Smart caching reduces repeated computations
 
+## 🚀 Automatic Releases
+
+This project uses **automatic versioning** based on conventional commits:
+
+- `feat:` commits → **minor** version bump (new features)
+- `fix:` commits → **patch** version bump (bug fixes)  
+- `BREAKING CHANGE` → **major** version bump (breaking changes)
+
+Just write conventional commit messages and releases happen automatically! See [CONVENTIONAL_COMMITS.md](CONVENTIONAL_COMMITS.md) for details.
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please read our contributing guidelines:

@@ -22,6 +22,9 @@
     "docs:serve": "node scripts/serve-docs.js",
     "docs:dev": "npm run docs:site && npm run docs:serve",
     "release:prepare": "node scripts/prepare-release.js",
+    "release:create": "node scripts/create-release.js",
+    "release:build": "node scripts/create-release.js build",
+    "release:instructions": "node scripts/create-release.js instructions",
     "validate": "node scripts/validate-extension.js",
     "validate:browser-compatibility": "node scripts/validate-browser-compatibility.js",
     "changelog:generate": "node scripts/changelog-generator.js generate",
@@ -78,7 +81,9 @@
     "playwright": "^1.40.0",
     "vitest": "^1.0.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "semver": "^7.5.4"
+  },
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
