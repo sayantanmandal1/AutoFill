@@ -1,6 +1,6 @@
 {
   "name": "job-application-autofill-extension",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A powerful Chrome/Brave browser extension for autofilling job applications and forms",
   "main": "background.js",
   "scripts": {
