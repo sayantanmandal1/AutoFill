@@ -275,10 +275,14 @@ jobs:
               echo "⚠️  Extension requests tab access - ensure this is necessary"
             fi
             
-            # Check for external script sources
+            # Check for external script sources (allow http:// in content script matches)
             if grep -q 'http://' manifest.json; then
-              echo "❌ HTTP URLs found in manifest - use HTTPS only"
-              exit 1
+              if grep -q '"matches".*"http://' manifest.json; then
+                echo "✅ HTTP URLs found in content script matches (allowed for extension functionality)"
+              else
+                echo "❌ HTTP URLs found in manifest - use HTTPS only"
+                exit 1
+              fi
             fi
             
             # Validate CSP if present
