@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release_type:
-        description: 'Release type (auto-detects from commits if not specified)'
+        description: "Release type (auto-detects from commits if not specified)"
         required: false
         type: choice
         options:
@@ -14,7 +14,7 @@ on:
           - major
         default: auto
       prerelease:
-        description: 'Mark as pre-release'
+        description: "Mark as pre-release"
         required: false
         type: boolean
         default: false
@@ -23,7 +23,7 @@ jobs:
   create-release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    
+
     permissions:
       contents: write
       pull-requests: write
@@ -46,18 +46,18 @@ jobs:
         run: |
           RELEASE_TYPE="${{ github.event.inputs.release_type }}"
           echo "🔍 Determining version automatically..."
-          
+
           # Get the last tag
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
           CURRENT_VERSION=$(echo $LAST_TAG | sed 's/^v//')
-          
+
           if [ "$CURRENT_VERSION" = "0.0.0" ]; then
             CURRENT_VERSION="0.0.0"
           fi
-          
+
           echo "Current version: $CURRENT_VERSION"
           echo "Requested release type: $RELEASE_TYPE"
-          
+
           # If auto, analyze commits to determine release type
           if [ "$RELEASE_TYPE" = "auto" ]; then
             echo "🔍 Analyzing commits to determine release type..."
@@ -97,7 +97,7 @@ jobs:
             
             echo "Auto-detected release type: $RELEASE_TYPE"
           fi
-          
+
           # Calculate new version using semver
           NEW_VERSION=$(node -e "
             const semver = require('semver');
@@ -105,7 +105,7 @@ jobs:
             const type = '$RELEASE_TYPE';
             console.log(semver.inc(current, type) || '1.0.0');
           " 2>/dev/null || echo "1.0.0")
-          
+
           echo "New version: $NEW_VERSION"
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
@@ -114,10 +114,10 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           echo "📝 Updating version to $VERSION in all files..."
-          
+
           # Update package.json
           npm version $VERSION --no-git-tag-version
-          
+
           # Update manifest.json
           node -e "
             const fs = require('fs');
@@ -125,7 +125,7 @@ jobs:
             manifest.version = '$VERSION';
             fs.writeFileSync('manifest.json', JSON.stringify(manifest, null, 2));
           "
-          
+
           echo "✅ Version updated to $VERSION"
 
       - name: Run tests
@@ -147,11 +147,11 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           echo "📝 Generating changelog for version $VERSION..."
-          
+
           # Get previous tag for changelog generation
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           echo "Previous tag: $PREVIOUS_TAG"
-          
+
           # Generate automated changelog
           if [ -n "$PREVIOUS_TAG" ]; then
             node scripts/changelog-generator.js generate --version=$VERSION --from=$PREVIOUS_TAG || echo "Changelog generation completed with warnings"
@@ -163,7 +163,7 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           echo "🏗️ Creating production build..."
-          
+
           # Create production build directory
           mkdir -p production-build
 
@@ -185,7 +185,7 @@ jobs:
           cd production-build
           zip -r ../job-application-autofill-v$VERSION.zip .
           cd ..
-          
+
           echo "✅ Extension package created: job-application-autofill-v$VERSION.zip"
 
       - name: Prepare version changes
@@ -200,10 +200,10 @@ jobs:
         id: release_notes
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          
+
           # Generate release notes
           RELEASE_NOTES=$(node scripts/changelog-generator.js release-notes --version=$VERSION 2>/dev/null || echo "")
-          
+
           if [ -z "$RELEASE_NOTES" ]; then
             echo "## 🚀 Release v$VERSION" > release-notes.md
             echo "" >> release-notes.md
