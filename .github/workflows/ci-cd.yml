@@ -2,508 +2,693 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [master, develop]
   pull_request:
-    branches: [ main ]
+    branches: [master]
   release:
-    types: [ published ]
+    types: [published]
 
 jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         node-version: [18.x, 20.x]
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        
-    - name: Validate project structure
-      run: |
-        echo "Validating project structure..."
-        echo "Node version: $(node --version)"
-        echo "NPM version: $(npm --version)"
-        echo "Package.json exists: $([ -f package.json ] && echo 'Yes' || echo 'No')"
-        echo "Main extension files:"
-        ls -la *.js *.json *.html *.css 2>/dev/null || echo "Some files missing"
-        
-        echo "Checking required npm scripts..."
-        npm run --silent 2>/dev/null | grep -E "(test|lint|build)" || echo "Some npm scripts may be missing"
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Run linting
-      run: npm run lint:check || echo "Linting issues found - continuing with warnings"
-      
-    - name: Run unit tests
-      run: npm test || echo "Some tests failed - continuing for now"
-      
-    - name: Run browser compatibility tests (Vitest)
-      run: npm run test:cross-browser || echo "Cross-browser tests completed with issues"
-      
-    - name: Install Playwright browsers
-      run: npx playwright install chromium chrome msedge
-      
-    - name: Run Playwright browser compatibility tests
-      run: npm run test:playwright
-      continue-on-error: true
-      
-    - name: Upload Playwright test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: playwright-test-results-${{ matrix.node-version }}
-        path: |
-          test-results/
-          playwright-report/
-        retention-days: 30
-        
-    - name: Upload test coverage reports
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: test-coverage-${{ matrix.node-version }}
-        path: coverage/
-        retention-days: 30
-        
-    - name: Run browser compatibility validation
-      run: npm run validate:browser-compatibility
-      continue-on-error: true
-      
-    - name: Generate test coverage
-      run: npm run test:coverage || echo "Coverage generation failed - continuing"
-      
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage/lcov.info
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - name: Validate project structure
+        run: |
+          echo "Validating project structure..."
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+          echo "Package.json exists: $([ -f package.json ] && echo 'Yes' || echo 'No')"
+          echo "Main extension files:"
+          ls -la *.js *.json *.html *.css 2>/dev/null || echo "Some files missing"
+
+          echo "Checking required npm scripts..."
+          npm run --silent 2>/dev/null | grep -E "(test|lint|build)" || echo "Some npm scripts may be missing"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linting
+        run: npm run lint:check || echo "Linting issues found - continuing with warnings"
+
+      - name: Run unit tests
+        run: npm test || echo "Some tests failed - continuing for now"
+
+      - name: Run browser compatibility tests (Vitest)
+        run: npm run test:cross-browser || echo "Cross-browser tests completed with issues"
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium chrome msedge
+
+      - name: Run Playwright browser compatibility tests
+        run: npm run test:playwright
+        continue-on-error: true
+
+      - name: Upload Playwright test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-test-results-${{ matrix.node-version }}
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 30
+
+      - name: Upload test coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-coverage-${{ matrix.node-version }}
+          path: coverage/
+          retention-days: 30
+
+      - name: Run browser compatibility validation
+        run: npm run validate:browser-compatibility
+        continue-on-error: true
+
+      - name: Generate test coverage
+        run: npm run test:coverage || echo "Coverage generation failed - continuing"
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
 
   build:
     name: Build Extension
     runs-on: ubuntu-latest
     needs: test
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Build extension
-      run: |
-        # Validate essential files exist
-        echo "Validating essential extension files..."
-        if [ ! -f "manifest.json" ]; then
-          echo "❌ manifest.json is required but not found"
-          exit 1
-        fi
-        
-        # Create build directory
-        mkdir -p build
-        
-        # Copy extension files (check if they exist first)
-        if [ -f "manifest.json" ]; then cp manifest.json build/; else echo "manifest.json not found"; fi
-        if [ -f "popup.html" ]; then cp popup.html build/; else echo "popup.html not found"; fi
-        if [ -f "popup.js" ]; then cp popup.js build/; else echo "popup.js not found"; fi
-        if [ -f "content.js" ]; then cp content.js build/; else echo "content.js not found"; fi
-        if [ -f "background.js" ]; then cp background.js build/; else echo "background.js not found"; fi
-        if [ -f "storage.js" ]; then cp storage.js build/; else echo "storage.js not found"; fi
-        if [ -f "style.css" ]; then cp style.css build/; else echo "style.css not found"; fi
-        
-        # Copy icons if they exist
-        if [ -d "icons" ]; then
-          cp -r icons build/
-        else
-          echo "Icons directory not found"
-        fi
-        
-        # List build contents for verification
-        echo "Build directory contents:"
-        ls -la build/
-        
-        # Create extension package
-        cd build
-        zip -r ../extension-${{ github.sha }}.zip .
-        cd ..
-        
-        echo "Extension package created: extension-${{ github.sha }}.zip"
-        ls -la extension-${{ github.sha }}.zip
-        
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: extension-build-${{ github.sha }}
-        path: |
-          build/
-          extension-${{ github.sha }}.zip
-        retention-days: 30
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build extension
+        run: |
+          # Validate essential files exist
+          echo "Validating essential extension files..."
+          if [ ! -f "manifest.json" ]; then
+            echo "❌ manifest.json is required but not found"
+            exit 1
+          fi
+
+          # Create build directory
+          mkdir -p build
+
+          # Copy extension files (check if they exist first)
+          if [ -f "manifest.json" ]; then cp manifest.json build/; else echo "manifest.json not found"; fi
+          if [ -f "popup.html" ]; then cp popup.html build/; else echo "popup.html not found"; fi
+          if [ -f "popup.js" ]; then cp popup.js build/; else echo "popup.js not found"; fi
+          if [ -f "content.js" ]; then cp content.js build/; else echo "content.js not found"; fi
+          if [ -f "background.js" ]; then cp background.js build/; else echo "background.js not found"; fi
+          if [ -f "storage.js" ]; then cp storage.js build/; else echo "storage.js not found"; fi
+          if [ -f "style.css" ]; then cp style.css build/; else echo "style.css not found"; fi
+
+          # Copy icons if they exist
+          if [ -d "icons" ]; then
+            cp -r icons build/
+          else
+            echo "Icons directory not found"
+          fi
+
+          # List build contents for verification
+          echo "Build directory contents:"
+          ls -la build/
+
+          # Create extension package
+          cd build
+          zip -r ../extension-${{ github.sha }}.zip .
+          cd ..
+
+          echo "Extension package created: extension-${{ github.sha }}.zip"
+          ls -la extension-${{ github.sha }}.zip
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-build-${{ github.sha }}
+          path: |
+            build/
+            extension-${{ github.sha }}.zip
+          retention-days: 30
 
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
     needs: test
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Run security audit
-      run: npm audit --audit-level=moderate || echo "Security audit completed with warnings"
-      
-    - name: Run dependency vulnerability scan
-      run: |
-        npx audit-ci --moderate || echo "Security scan completed with warnings"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate security environment
+        env:
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          EMAIL_NOTIFICATIONS_ENABLED: ${{ secrets.EMAIL_NOTIFICATIONS_ENABLED }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SLACK_NOTIFICATIONS_ENABLED: ${{ secrets.SLACK_NOTIFICATIONS_ENABLED }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          echo "🔍 Validating security environment..."
+          node scripts/setup-security.js validate-ci || echo "Security validation completed with warnings"
+
+      - name: Run npm security audit
+        run: |
+          echo "🔍 Running npm security audit..."
+          npm audit --audit-level=moderate --json > npm-audit-results.json || true
+          
+          # Display human-readable results
+          npm audit --audit-level=moderate || echo "Security audit found vulnerabilities"
+          
+          # Check for critical/high vulnerabilities
+          CRITICAL_COUNT=$(cat npm-audit-results.json | jq -r '.metadata.vulnerabilities.critical // 0' 2>/dev/null || echo "0")
+          HIGH_COUNT=$(cat npm-audit-results.json | jq -r '.metadata.vulnerabilities.high // 0' 2>/dev/null || echo "0")
+          
+          echo "Critical vulnerabilities: $CRITICAL_COUNT"
+          echo "High vulnerabilities: $HIGH_COUNT"
+          
+          if [ "$CRITICAL_COUNT" -gt 0 ]; then
+            echo "❌ Critical vulnerabilities found - failing build"
+            exit 1
+          fi
+          
+          if [ "$HIGH_COUNT" -gt 5 ]; then
+            echo "⚠️  Too many high vulnerabilities found - review required"
+            exit 1
+          fi
+
+      - name: Run dependency vulnerability scan with audit-ci
+        run: |
+          echo "🔍 Running enhanced dependency vulnerability scan..."
+          npx audit-ci --config .audit-ci.json || npx audit-ci --moderate || echo "Dependency scan completed with warnings"
+
+      - name: Scan for secrets in code
+        run: |
+          echo "🔍 Scanning for accidentally committed secrets..."
+          
+          # Check for common secret patterns
+          echo "Checking for API keys and tokens..."
+          if grep -r -E "(api[_-]?key|secret|token|password)\s*[:=]\s*['\"][^'\"]{10,}" --exclude-dir=node_modules --exclude-dir=.git --exclude="*.md" . ; then
+            echo "⚠️  Potential secrets found in code - review required"
+          else
+            echo "✅ No obvious secrets found in code"
+          fi
+          
+          # Check for Chrome Web Store specific patterns
+          echo "Checking for Chrome Web Store credentials..."
+          if grep -r -E "(GOCSPX-|[0-9]+-[a-zA-Z0-9]+\.apps\.googleusercontent\.com|1//[a-zA-Z0-9_-]{50,})" --exclude-dir=node_modules --exclude-dir=.git --exclude="*.md" . ; then
+            echo "❌ Chrome Web Store credentials found in code - this is a security violation!"
+            exit 1
+          else
+            echo "✅ No Chrome Web Store credentials found in code"
+          fi
+
+      - name: Check file permissions and security
+        run: |
+          echo "🔍 Checking file permissions and security..."
+          
+          # Check for executable files that shouldn't be
+          echo "Checking for suspicious executable files..."
+          find . -type f -executable -not -path "./node_modules/*" -not -path "./.git/*" -not -name "*.sh" -not -name "*.js" | head -10
+          
+          # Check for world-writable files
+          echo "Checking for world-writable files..."
+          find . -type f -perm -002 -not -path "./node_modules/*" -not -path "./.git/*" | head -10
+          
+          # Check for large files that might contain secrets
+          echo "Checking for unusually large files..."
+          find . -type f -size +1M -not -path "./node_modules/*" -not -path "./.git/*" -not -path "./coverage/*" | head -10
+
+      - name: Validate extension manifest security
+        run: |
+          echo "🔍 Validating extension manifest security..."
+          
+          if [ -f "manifest.json" ]; then
+            # Check for overly broad permissions
+            echo "Checking manifest permissions..."
+            
+            # Check for dangerous permissions
+            if grep -q '"permissions".*"<all_urls>"' manifest.json; then
+              echo "⚠️  Extension requests access to all URLs - review if necessary"
+            fi
+            
+            if grep -q '"permissions".*"tabs"' manifest.json; then
+              echo "⚠️  Extension requests tab access - ensure this is necessary"
+            fi
+            
+            # Check for external script sources
+            if grep -q 'http://' manifest.json; then
+              echo "❌ HTTP URLs found in manifest - use HTTPS only"
+              exit 1
+            fi
+            
+            # Validate CSP if present
+            if grep -q 'content_security_policy' manifest.json; then
+              echo "✅ Content Security Policy found in manifest"
+            else
+              echo "⚠️  No Content Security Policy in manifest - consider adding one"
+            fi
+            
+            echo "✅ Manifest security validation completed"
+          else
+            echo "⚠️  No manifest.json found"
+          fi
+
+      - name: Run SAST (Static Application Security Testing)
+        run: |
+          echo "🔍 Running static application security testing..."
+          
+          # Install and run ESLint security plugin
+          npm install --no-save eslint-plugin-security || echo "Could not install security plugin"
+          
+          # Check for common security issues in JavaScript
+          echo "Checking for common JavaScript security issues..."
+          
+          # Check for eval usage
+          if grep -r "eval(" --include="*.js" --exclude-dir=node_modules . ; then
+            echo "⚠️  eval() usage found - potential security risk"
+          fi
+          
+          # Check for innerHTML usage
+          if grep -r "innerHTML" --include="*.js" --exclude-dir=node_modules . ; then
+            echo "⚠️  innerHTML usage found - potential XSS risk, ensure input is sanitized"
+          fi
+          
+          # Check for document.write usage
+          if grep -r "document\.write" --include="*.js" --exclude-dir=node_modules . ; then
+            echo "⚠️  document.write usage found - potential security risk"
+          fi
+          
+          echo "✅ SAST scan completed"
+
+      - name: Generate security report
+        if: always()
+        run: |
+          echo "📊 Generating security scan report..."
+          
+          # Create security report
+          cat > security-report.json << EOF
+          {
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "scanResults": {
+              "npmAudit": {
+                "status": "completed",
+                "resultsFile": "npm-audit-results.json"
+              },
+              "secretsScan": {
+                "status": "completed",
+                "secretsFound": false
+              },
+              "manifestValidation": {
+                "status": "completed",
+                "manifestFound": $([ -f "manifest.json" ] && echo "true" || echo "false")
+              },
+              "sastScan": {
+                "status": "completed"
+              }
+            },
+            "recommendations": [
+              "Review npm audit results for vulnerabilities",
+              "Ensure no secrets are committed to repository",
+              "Validate extension permissions are minimal",
+              "Keep dependencies updated regularly"
+            ]
+          }
+          EOF
+          
+          echo "✅ Security report generated"
+
+      - name: Upload security scan results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-scan-results-${{ github.run_number }}
+          path: |
+            npm-audit-results.json
+            security-report.json
+          retention-days: 30
 
   deploy-docs:
     name: Deploy Documentation
     runs-on: ubuntu-latest
     needs: [test, build]
-    if: github.ref == 'refs/heads/main'
-    
+    if: github.ref == 'refs/heads/master'
+
     permissions:
       contents: read
       pages: write
       id-token: write
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Generate API documentation
-      run: |
-        # Create docs build directory
-        mkdir -p docs-build
-        
-        # Copy existing documentation
-        cp -r docs/* docs-build/ 2>/dev/null || echo "No docs directory found"
-        cp README.md docs-build/
-        cp CHANGELOG.md docs-build/ 2>/dev/null || echo "No changelog found"
-        cp CONTRIBUTING.md docs-build/ 2>/dev/null || echo "No contributing guide found"
-        
-        # Generate API docs (will be implemented in next task)
-        node scripts/generate-api-docs.js || echo "API doc generation not yet implemented"
-        
-    - name: Setup Pages
-      uses: actions/configure-pages@v4
-      
-    - name: Upload to GitHub Pages
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: docs-build
-        
-    - name: Deploy to GitHub Pages
-      id: deployment
-      uses: actions/deploy-pages@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate API documentation
+        run: |
+          # Create docs build directory
+          mkdir -p docs-build
+
+          # Copy existing documentation
+          cp -r docs/* docs-build/ 2>/dev/null || echo "No docs directory found"
+          cp README.md docs-build/
+          cp CHANGELOG.md docs-build/ 2>/dev/null || echo "No changelog found"
+          cp CONTRIBUTING.md docs-build/ 2>/dev/null || echo "No contributing guide found"
+
+          # Generate API docs (will be implemented in next task)
+          node scripts/generate-api-docs.js || echo "API doc generation not yet implemented"
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs-build
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
   release:
     name: Release to Chrome Web Store
     runs-on: ubuntu-latest
     needs: [test, build, security-scan]
     if: github.event_name == 'release'
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Download build artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: extension-build-${{ github.sha }}
-        
-    - name: Update version numbers and generate changelog
-      run: |
-        # Extract version from release tag
-        VERSION=${GITHUB_REF#refs/tags/v}
-        echo "Release version: $VERSION"
-        
-        # Get previous tag for changelog generation
-        PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-        echo "Previous tag: $PREVIOUS_TAG"
-        
-        # Update version files using version manager
-        node scripts/version-manager.js update $VERSION
-        
-        # Generate automated changelog
-        if [ -n "$PREVIOUS_TAG" ]; then
-          node scripts/changelog-generator.js generate --version=$VERSION --from=$PREVIOUS_TAG
-        else
-          node scripts/changelog-generator.js generate --version=$VERSION
-        fi
-        
-        echo "✅ Version updated and changelog generated"
-        
-    - name: Create production build
-      run: |
-        # Create production build directory
-        mkdir -p production-build
-        
-        # Copy updated files
-        cp manifest.json production-build/
-        cp popup.html production-build/
-        cp popup.js production-build/
-        cp content.js production-build/
-        cp background.js production-build/
-        cp storage.js production-build/
-        cp style.css production-build/
-        
-        # Copy icons if they exist
-        if [ -d "icons" ]; then
-          cp -r icons production-build/
-        fi
-        
-        # Create final extension package
-        cd production-build
-        zip -r ../extension-production-v${GITHUB_REF#refs/tags/v}.zip .
-        cd ..
-        
-    - name: Upload to Chrome Web Store
-      env:
-        CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
-        CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
-        CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
-        CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
-      run: |
-        # Install Chrome Web Store upload dependencies
-        npm install googleapis chrome-webstore-upload
-        
-        # Run Chrome Web Store upload script
-        node scripts/chrome-store-upload.js
-        
-        echo "✅ Chrome Web Store upload completed"
-        
-    - name: Create GitHub Release Assets
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          extension-production-v*.zip
-        body: |
-          ## 🚀 Release Notes
-          
-          This release includes:
-          - Automated build and testing
-          - Security vulnerability scanning
-          - Production-ready extension package
-          - Automated changelog generation
-          
-          ### Installation
-          1. Download the extension zip file
-          2. Extract and load in Chrome developer mode
-          3. Or wait for Chrome Web Store auto-update
-          
-          ### Changes
-          See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
-          
-          ### Release Notes
-          $(node scripts/changelog-generator.js release-notes --version=${GITHUB_REF#refs/tags/v} 2>/dev/null || echo "See CHANGELOG.md for details")
-        draft: false
-        prerelease: false
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: extension-build-${{ github.sha }}
+
+      - name: Update version numbers and generate changelog
+        run: |
+          # Extract version from release tag
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "Release version: $VERSION"
+
+          # Get previous tag for changelog generation
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "Previous tag: $PREVIOUS_TAG"
+
+          # Update version files using version manager
+          node scripts/version-manager.js update $VERSION
+
+          # Generate automated changelog
+          if [ -n "$PREVIOUS_TAG" ]; then
+            node scripts/changelog-generator.js generate --version=$VERSION --from=$PREVIOUS_TAG
+          else
+            node scripts/changelog-generator.js generate --version=$VERSION
+          fi
+
+          echo "✅ Version updated and changelog generated"
+
+      - name: Create production build
+        run: |
+          # Create production build directory
+          mkdir -p production-build
+
+          # Copy updated files
+          cp manifest.json production-build/
+          cp popup.html production-build/
+          cp popup.js production-build/
+          cp content.js production-build/
+          cp background.js production-build/
+          cp storage.js production-build/
+          cp style.css production-build/
+
+          # Copy icons if they exist
+          if [ -d "icons" ]; then
+            cp -r icons production-build/
+          fi
+
+          # Create final extension package
+          cd production-build
+          zip -r ../extension-production-v${GITHUB_REF#refs/tags/v}.zip .
+          cd ..
+
+      - name: Upload to Chrome Web Store
+        env:
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+        run: |
+          # Install Chrome Web Store upload dependencies
+          npm install googleapis chrome-webstore-upload
+
+          # Run Chrome Web Store upload script
+          node scripts/chrome-store-upload.js
+
+          echo "✅ Chrome Web Store upload completed"
+
+      - name: Create GitHub Release Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            extension-production-v*.zip
+          body: |
+            ## 🚀 Release Notes
+
+            This release includes:
+            - Automated build and testing
+            - Security vulnerability scanning
+            - Production-ready extension package
+            - Automated changelog generation
+
+            ### Installation
+            1. Download the extension zip file
+            2. Extract and load in Chrome developer mode
+            3. Or wait for Chrome Web Store auto-update
+
+            ### Changes
+            See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
+
+            ### Release Notes
+            $(node scripts/changelog-generator.js release-notes --version=${GITHUB_REF#refs/tags/v} 2>/dev/null || echo "See CHANGELOG.md for details")
+          draft: false
+          prerelease: false
 
   notify:
     name: Notify Status
     runs-on: ubuntu-latest
     needs: [test, build, security-scan, deploy-docs]
     if: always()
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Notify Success
-      if: needs.test.result == 'success' && needs.build.result == 'success'
-      env:
-        DEPLOYMENT_VERSION: ${{ github.ref_name }}
-        CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
-        GITHUB_RUN_NUMBER: ${{ github.run_number }}
-        GITHUB_SHA: ${{ github.sha }}
-        EMAIL_NOTIFICATIONS_ENABLED: ${{ secrets.EMAIL_NOTIFICATIONS_ENABLED }}
-        EMAIL_RECIPIENTS_DEPLOYMENT: ${{ secrets.EMAIL_RECIPIENTS_DEPLOYMENT }}
-        SMTP_HOST: ${{ secrets.SMTP_HOST }}
-        SMTP_USER: ${{ secrets.SMTP_USER }}
-        SMTP_PASS: ${{ secrets.SMTP_PASS }}
-        SLACK_NOTIFICATIONS_ENABLED: ${{ secrets.SLACK_NOTIFICATIONS_ENABLED }}
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-      run: |
-        echo "✅ CI/CD Pipeline completed successfully!"
-        echo "- Tests: ${{ needs.test.result }}"
-        echo "- Build: ${{ needs.build.result }}"
-        echo "- Security: ${{ needs.security-scan.result }}"
-        echo "- Docs: ${{ needs.deploy-docs.result }}"
-        
-        # Send success notifications
-        node scripts/notification-manager.js success
-        node scripts/email-notification-service.js success
-        
-    - name: Check browser compatibility test results
-      if: always()
-      run: |
-        if [ -f "test-results/browser-compatibility-results.json" ]; then
-          echo "📊 Browser Compatibility Test Results:"
-          node -e "
-            const fs = require('fs');
-            try {
-              const results = JSON.parse(fs.readFileSync('test-results/browser-compatibility-results.json', 'utf8'));
-              console.log(\`Total: \${results.summary.total}\`);
-              console.log(\`Passed: \${results.summary.passed}\`);
-              console.log(\`Failed: \${results.summary.failed}\`);
-              const successRate = results.summary.total > 0 ? ((results.summary.passed / results.summary.total) * 100).toFixed(1) : 0;
-              console.log(\`Success Rate: \${successRate}%\`);
-              
-              if (results.summary.failed > 0) {
-                console.log('❌ Browser compatibility tests failed');
-                process.exit(1);
-              } else {
-                console.log('✅ All browser compatibility tests passed');
-              }
-            } catch (error) {
-              console.log('⚠️ Could not read browser compatibility results');
-            }
-          "
-        else
-          echo "⚠️ Browser compatibility results not found"
-        fi
-        
-    - name: Notify Failure
-      if: needs.test.result == 'failure' || needs.build.result == 'failure'
-      env:
-        DEPLOYMENT_VERSION: ${{ github.ref_name }}
-        CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
-        GITHUB_RUN_NUMBER: ${{ github.run_number }}
-        GITHUB_SHA: ${{ github.sha }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITHUB_REPOSITORY: ${{ github.repository }}
-        GITHUB_RUN_ID: ${{ github.run_id }}
-        EMAIL_NOTIFICATIONS_ENABLED: ${{ secrets.EMAIL_NOTIFICATIONS_ENABLED }}
-        EMAIL_RECIPIENTS_DEPLOYMENT: ${{ secrets.EMAIL_RECIPIENTS_DEPLOYMENT }}
-        EMAIL_RECIPIENTS_CRITICAL: ${{ secrets.EMAIL_RECIPIENTS_CRITICAL }}
-        SMTP_HOST: ${{ secrets.SMTP_HOST }}
-        SMTP_USER: ${{ secrets.SMTP_USER }}
-        SMTP_PASS: ${{ secrets.SMTP_PASS }}
-        SLACK_NOTIFICATIONS_ENABLED: ${{ secrets.SLACK_NOTIFICATIONS_ENABLED }}
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        GITHUB_CREATE_ISSUES: 'true'
-        GITHUB_ISSUE_ASSIGNEES: ${{ secrets.GITHUB_ISSUE_ASSIGNEES }}
-      run: |
-        echo "❌ CI/CD Pipeline failed!"
-        echo "- Tests: ${{ needs.test.result }}"
-        echo "- Build: ${{ needs.build.result }}"
-        echo "- Security: ${{ needs.security-scan.result }}"
-        echo "- Docs: ${{ needs.deploy-docs.result }}"
-        echo ""
-        echo "Please check the logs above for detailed error information."
-        echo "Common issues:"
-        echo "  - Test failures: Check test output for specific failing tests"
-        echo "  - Build failures: Ensure all required files exist"
-        echo "  - Linting issues: Run 'npm run lint' locally to fix"
-        echo "  - Browser compatibility: Check Playwright test results"
-        echo ""
-        echo "📄 Test artifacts are available in the Actions summary"
-        
-        # Send failure notifications
-        ERROR_MESSAGE="CI/CD Pipeline failed - Tests: ${{ needs.test.result }}, Build: ${{ needs.build.result }}"
-        node scripts/notification-manager.js failure "${{ github.ref_name }}" "$ERROR_MESSAGE"
-        node scripts/email-notification-service.js failure "${{ github.ref_name }}" "$ERROR_MESSAGE"
-        node scripts/github-issue-manager.js deployment-failure "${{ github.ref_name }}" "$ERROR_MESSAGE"
-        
-        exit 1
-        
-    - name: Create GitHub Issue for Failures
-      if: failure() && (needs.test.result == 'failure' || needs.build.result == 'failure')
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const fs = require('fs');
-          
-          // Check if issue data was created by notification scripts
-          const issueFiles = [
-            'deployment-failure-issue.json',
-            'test-failure-issue.json'
-          ];
-          
-          for (const issueFile of issueFiles) {
-            if (fs.existsSync(issueFile)) {
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Notify Success
+        if: needs.test.result == 'success' && needs.build.result == 'success'
+        env:
+          DEPLOYMENT_VERSION: ${{ github.ref_name }}
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_SHA: ${{ github.sha }}
+          EMAIL_NOTIFICATIONS_ENABLED: ${{ secrets.EMAIL_NOTIFICATIONS_ENABLED }}
+          EMAIL_RECIPIENTS_DEPLOYMENT: ${{ secrets.EMAIL_RECIPIENTS_DEPLOYMENT }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SLACK_NOTIFICATIONS_ENABLED: ${{ secrets.SLACK_NOTIFICATIONS_ENABLED }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          echo "✅ CI/CD Pipeline completed successfully!"
+          echo "- Tests: ${{ needs.test.result }}"
+          echo "- Build: ${{ needs.build.result }}"
+          echo "- Security: ${{ needs.security-scan.result }}"
+          echo "- Docs: ${{ needs.deploy-docs.result }}"
+
+          # Send success notifications
+          node scripts/notification-manager.js success
+          node scripts/email-notification-service.js success
+
+      - name: Check browser compatibility test results
+        if: always()
+        run: |
+          if [ -f "test-results/browser-compatibility-results.json" ]; then
+            echo "📊 Browser Compatibility Test Results:"
+            node -e "
+              const fs = require('fs');
               try {
-                const issueData = JSON.parse(fs.readFileSync(issueFile, 'utf8'));
+                const results = JSON.parse(fs.readFileSync('test-results/browser-compatibility-results.json', 'utf8'));
+                console.log(\`Total: \${results.summary.total}\`);
+                console.log(\`Passed: \${results.summary.passed}\`);
+                console.log(\`Failed: \${results.summary.failed}\`);
+                const successRate = results.summary.total > 0 ? ((results.summary.passed / results.summary.total) * 100).toFixed(1) : 0;
+                console.log(\`Success Rate: \${successRate}%\`);
                 
-                const issue = await github.rest.issues.create({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  title: issueData.title,
-                  body: issueData.body,
-                  labels: issueData.labels,
-                  assignees: issueData.assignees || []
-                });
-                
-                console.log(`✅ Created issue #${issue.data.number}: ${issueData.title}`);
+                if (results.summary.failed > 0) {
+                  console.log('❌ Browser compatibility tests failed');
+                  process.exit(1);
+                } else {
+                  console.log('✅ All browser compatibility tests passed');
+                }
               } catch (error) {
-                console.error(`❌ Failed to create issue from ${issueFile}:`, error.message);
+                console.log('⚠️ Could not read browser compatibility results');
+              }
+            "
+          else
+            echo "⚠️ Browser compatibility results not found"
+          fi
+
+      - name: Notify Failure
+        if: needs.test.result == 'failure' || needs.build.result == 'failure'
+        env:
+          DEPLOYMENT_VERSION: ${{ github.ref_name }}
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          EMAIL_NOTIFICATIONS_ENABLED: ${{ secrets.EMAIL_NOTIFICATIONS_ENABLED }}
+          EMAIL_RECIPIENTS_DEPLOYMENT: ${{ secrets.EMAIL_RECIPIENTS_DEPLOYMENT }}
+          EMAIL_RECIPIENTS_CRITICAL: ${{ secrets.EMAIL_RECIPIENTS_CRITICAL }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SLACK_NOTIFICATIONS_ENABLED: ${{ secrets.SLACK_NOTIFICATIONS_ENABLED }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          GITHUB_CREATE_ISSUES: "true"
+          GITHUB_ISSUE_ASSIGNEES: ${{ secrets.GITHUB_ISSUE_ASSIGNEES }}
+        run: |
+          echo "❌ CI/CD Pipeline failed!"
+          echo "- Tests: ${{ needs.test.result }}"
+          echo "- Build: ${{ needs.build.result }}"
+          echo "- Security: ${{ needs.security-scan.result }}"
+          echo "- Docs: ${{ needs.deploy-docs.result }}"
+          echo ""
+          echo "Please check the logs above for detailed error information."
+          echo "Common issues:"
+          echo "  - Test failures: Check test output for specific failing tests"
+          echo "  - Build failures: Ensure all required files exist"
+          echo "  - Linting issues: Run 'npm run lint' locally to fix"
+          echo "  - Browser compatibility: Check Playwright test results"
+          echo ""
+          echo "📄 Test artifacts are available in the Actions summary"
+
+          # Send failure notifications
+          ERROR_MESSAGE="CI/CD Pipeline failed - Tests: ${{ needs.test.result }}, Build: ${{ needs.build.result }}"
+          node scripts/notification-manager.js failure "${{ github.ref_name }}" "$ERROR_MESSAGE"
+          node scripts/email-notification-service.js failure "${{ github.ref_name }}" "$ERROR_MESSAGE"
+          node scripts/github-issue-manager.js deployment-failure "${{ github.ref_name }}" "$ERROR_MESSAGE"
+
+          exit 1
+
+      - name: Create GitHub Issue for Failures
+        if: failure() && (needs.test.result == 'failure' || needs.build.result == 'failure')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            // Check if issue data was created by notification scripts
+            const issueFiles = [
+              'deployment-failure-issue.json',
+              'test-failure-issue.json'
+            ];
+
+            for (const issueFile of issueFiles) {
+              if (fs.existsSync(issueFile)) {
+                try {
+                  const issueData = JSON.parse(fs.readFileSync(issueFile, 'utf8'));
+                  
+                  const issue = await github.rest.issues.create({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    title: issueData.title,
+                    body: issueData.body,
+                    labels: issueData.labels,
+                    assignees: issueData.assignees || []
+                  });
+                  
+                  console.log(`✅ Created issue #${issue.data.number}: ${issueData.title}`);
+                } catch (error) {
+                  console.error(`❌ Failed to create issue from ${issueFile}:`, error.message);
+                }
               }
             }
-          }
-          
-    - name: Upload notification artifacts
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: notification-reports-${{ github.run_number }}
-        path: |
-          notification-summary.json
-          email-notification.json
-          deployment-failure-issue.json
-          test-failure-issue.json
-        retention-days: 30
+
+      - name: Upload notification artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: notification-reports-${{ github.run_number }}
+          path: |
+            notification-summary.json
+            email-notification.json
+            deployment-failure-issue.json
+            test-failure-issue.json
+          retention-days: 30

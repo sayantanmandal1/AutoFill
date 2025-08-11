@@ -6,16 +6,16 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to deploy (e.g., 1.2.3)'
+        description: "Version to deploy (e.g., 1.2.3)"
         required: true
         type: string
       skip_publish:
-        description: 'Skip publishing (upload only)'
+        description: "Skip publishing (upload only)"
         required: false
         type: boolean
         default: false
       publish_target:
-        description: 'Publish target'
+        description: "Publish target"
         required: false
         type: choice
         options:
@@ -27,338 +27,341 @@ jobs:
   deploy:
     name: Deploy to Chrome Web Store
     runs-on: ubuntu-latest
-    
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
     environment:
-      name: chrome-web-store
+      name: production
       url: https://chrome.google.com/webstore/detail/${{ secrets.CHROME_EXTENSION_ID }}
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Determine version
-      id: version
-      run: |
-        if [ "${{ github.event_name }}" = "release" ]; then
-          VERSION=${GITHUB_REF#refs/tags/v}
-          echo "Using release version: $VERSION"
-        elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-          VERSION="${{ github.event.inputs.version }}"
-          echo "Using manual version: $VERSION"
-        else
-          VERSION=$(node -p "require('./package.json').version")
-          echo "Using package.json version: $VERSION"
-        fi
-        
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
-        
-    - name: Validate version format
-      run: |
-        if ! echo "$VERSION" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-          echo "❌ Invalid version format: $VERSION"
-          echo "Version must be in semantic version format (e.g., 1.2.3)"
-          exit 1
-        fi
-        echo "✅ Version format valid: $VERSION"
-        
-    - name: Update version in files
-      run: |
-        echo "📝 Updating version to $VERSION in all files..."
-        node scripts/version-manager.js update $VERSION
-        
-    - name: Run tests
-      run: |
-        echo "🧪 Running tests before deployment..."
-        npm test
-        
-    - name: Run security audit
-      run: |
-        echo "🔒 Running security audit..."
-        npm audit --audit-level=moderate || echo "Security audit completed with warnings"
-        
-    - name: Build extension
-      run: |
-        echo "🔨 Building extension..."
-        node scripts/build-extension.js
-        
-    - name: Validate extension package
-      run: |
-        echo "🔍 Validating extension package..."
-        
-        # Check if package exists
-        PACKAGE_PATH="dist/job-application-autofill-v$VERSION.zip"
-        if [ ! -f "$PACKAGE_PATH" ]; then
-          echo "❌ Extension package not found: $PACKAGE_PATH"
-          exit 1
-        fi
-        
-        # Check package size (should be reasonable for Chrome Web Store)
-        PACKAGE_SIZE=$(stat -f%z "$PACKAGE_PATH" 2>/dev/null || stat -c%s "$PACKAGE_PATH")
-        PACKAGE_SIZE_MB=$((PACKAGE_SIZE / 1024 / 1024))
-        
-        echo "📦 Package size: ${PACKAGE_SIZE_MB}MB"
-        
-        if [ $PACKAGE_SIZE_MB -gt 50 ]; then
-          echo "⚠️ Warning: Package size is large (${PACKAGE_SIZE_MB}MB)"
-        fi
-        
-        # Validate zip contents
-        echo "📋 Package contents:"
-        unzip -l "$PACKAGE_PATH"
-        
-        echo "✅ Extension package validated"
-        
-    - name: Deploy to Chrome Web Store
-      id: deploy
-      env:
-        CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
-        CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
-        CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
-        CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
-        SKIP_PUBLISH: ${{ github.event.inputs.skip_publish || 'false' }}
-        PUBLISH_TARGET: ${{ github.event.inputs.publish_target || 'default' }}
-      run: |
-        echo "🚀 Deploying to Chrome Web Store..."
-        echo "   Extension ID: $CHROME_EXTENSION_ID"
-        echo "   Version: $VERSION"
-        echo "   Skip Publish: $SKIP_PUBLISH"
-        echo "   Publish Target: $PUBLISH_TARGET"
-        
-        # Run deployment script
-        node scripts/chrome-store-upload.js
-        
-    - name: Upload deployment artifacts
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: chrome-store-deployment-${{ steps.version.outputs.version }}
-        path: |
-          dist/
-          deployment-summary.json
-        retention-days: 30
-        
-    - name: Create deployment summary
-      if: always()
-      run: |
-        echo "📊 Deployment Summary" >> $GITHUB_STEP_SUMMARY
-        echo "===================" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Version:** $VERSION" >> $GITHUB_STEP_SUMMARY
-        echo "**Extension ID:** $CHROME_EXTENSION_ID" >> $GITHUB_STEP_SUMMARY
-        echo "**Build Number:** $GITHUB_RUN_NUMBER" >> $GITHUB_STEP_SUMMARY
-        echo "**Commit:** ${GITHUB_SHA:0:8}" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        
-        if [ -f "dist/deployment-summary.json" ]; then
-          echo "**Deployment Status:**" >> $GITHUB_STEP_SUMMARY
-          echo '```json' >> $GITHUB_STEP_SUMMARY
-          cat dist/deployment-summary.json >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-        fi
-        
-    - name: Comment on PR (if applicable)
-      if: github.event_name == 'release' && github.event.release.target_commitish != 'main'
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const version = '${{ steps.version.outputs.version }}';
-          const extensionId = '${{ secrets.CHROME_EXTENSION_ID }}';
-          
-          const comment = `
-          ## 🚀 Chrome Web Store Deployment
-          
-          **Version ${version}** has been deployed to the Chrome Web Store!
-          
-          - **Extension ID:** ${extensionId}
-          - **Build:** #${{ github.run_number }}
-          - **Commit:** ${context.sha.substring(0, 8)}
-          
-          ### What's Next?
-          - Extension will be available to users within 1-2 hours
-          - Users with auto-update enabled will receive the update automatically
-          - Manual installation: [Chrome Web Store](https://chrome.google.com/webstore/detail/${extensionId})
-          
-          ### Rollback
-          If issues are detected, you can rollback by:
-          1. Going to the Chrome Web Store Developer Dashboard
-          2. Selecting a previous version to publish
-          3. Or creating a hotfix release
-          `;
-          
-          // Find related PR if this is a release
-          const prs = await github.rest.pulls.list({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            state: 'closed',
-            sort: 'updated',
-            direction: 'desc'
-          });
-          
-          const relatedPR = prs.data.find(pr => 
-            pr.merge_commit_sha === context.sha ||
-            pr.head.sha === context.sha
-          );
-          
-          if (relatedPR) {
-            await github.rest.issues.createComment({
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+            echo "Using release version: $VERSION"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+            echo "Using manual version: $VERSION"
+          else
+            VERSION=$(node -p "require('./package.json').version")
+            echo "Using package.json version: $VERSION"
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Validate version format
+        run: |
+          if ! echo "$VERSION" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "❌ Invalid version format: $VERSION"
+            echo "Version must be in semantic version format (e.g., 1.2.3)"
+            exit 1
+          fi
+          echo "✅ Version format valid: $VERSION"
+
+      - name: Update version in files
+        run: |
+          echo "📝 Updating version to $VERSION in all files..."
+          node scripts/version-manager.js update $VERSION
+
+      - name: Run tests
+        run: |
+          echo "🧪 Running tests before deployment..."
+          npm test
+
+      - name: Run security audit
+        run: |
+          echo "🔒 Running security audit..."
+          npm audit --audit-level=moderate || echo "Security audit completed with warnings"
+
+      - name: Build extension
+        run: |
+          echo "🔨 Building extension..."
+          node scripts/build-extension.js
+
+      - name: Validate extension package
+        run: |
+          echo "🔍 Validating extension package..."
+
+          # Check if package exists
+          PACKAGE_PATH="dist/job-application-autofill-v$VERSION.zip"
+          if [ ! -f "$PACKAGE_PATH" ]; then
+            echo "❌ Extension package not found: $PACKAGE_PATH"
+            exit 1
+          fi
+
+          # Check package size (should be reasonable for Chrome Web Store)
+          PACKAGE_SIZE=$(stat -f%z "$PACKAGE_PATH" 2>/dev/null || stat -c%s "$PACKAGE_PATH")
+          PACKAGE_SIZE_MB=$((PACKAGE_SIZE / 1024 / 1024))
+
+          echo "📦 Package size: ${PACKAGE_SIZE_MB}MB"
+
+          if [ $PACKAGE_SIZE_MB -gt 50 ]; then
+            echo "⚠️ Warning: Package size is large (${PACKAGE_SIZE_MB}MB)"
+          fi
+
+          # Validate zip contents
+          echo "📋 Package contents:"
+          unzip -l "$PACKAGE_PATH"
+
+          echo "✅ Extension package validated"
+
+      - name: Deploy to Chrome Web Store
+        id: deploy
+        env:
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          SKIP_PUBLISH: ${{ github.event.inputs.skip_publish || 'false' }}
+          PUBLISH_TARGET: ${{ github.event.inputs.publish_target || 'default' }}
+        run: |
+          echo "🚀 Deploying to Chrome Web Store..."
+          echo "   Extension ID: $CHROME_EXTENSION_ID"
+          echo "   Version: $VERSION"
+          echo "   Skip Publish: $SKIP_PUBLISH"
+          echo "   Publish Target: $PUBLISH_TARGET"
+
+          # Run deployment script
+          node scripts/chrome-store-upload.js
+
+      - name: Upload deployment artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: chrome-store-deployment-${{ steps.version.outputs.version }}
+          path: |
+            dist/
+            deployment-summary.json
+          retention-days: 30
+
+      - name: Create deployment summary
+        if: always()
+        run: |
+          echo "📊 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "===================" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** $VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "**Extension ID:** $CHROME_EXTENSION_ID" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Number:** $GITHUB_RUN_NUMBER" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${GITHUB_SHA:0:8}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f "dist/deployment-summary.json" ]; then
+            echo "**Deployment Status:**" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat dist/deployment-summary.json >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Comment on PR (if applicable)
+        if: github.event_name == 'release' && github.event.release.target_commitish != 'master'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ steps.version.outputs.version }}';
+            const extensionId = '${{ secrets.CHROME_EXTENSION_ID }}';
+
+            const comment = `
+            ## 🚀 Chrome Web Store Deployment
+
+            **Version ${version}** has been deployed to the Chrome Web Store!
+
+            - **Extension ID:** ${extensionId}
+            - **Build:** #${{ github.run_number }}
+            - **Commit:** ${context.sha.substring(0, 8)}
+
+            ### What's Next?
+            - Extension will be available to users within 1-2 hours
+            - Users with auto-update enabled will receive the update automatically
+            - Manual installation: [Chrome Web Store](https://chrome.google.com/webstore/detail/${extensionId})
+
+            ### Rollback
+            If issues are detected, you can rollback by:
+            1. Going to the Chrome Web Store Developer Dashboard
+            2. Selecting a previous version to publish
+            3. Or creating a hotfix release
+            `;
+
+            // Find related PR if this is a release
+            const prs = await github.rest.pulls.list({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: relatedPR.number,
-              body: comment
+              state: 'closed',
+              sort: 'updated',
+              direction: 'desc'
             });
-          }
-          
-    - name: Notify on failure
-      if: failure()
-      env:
-        DEPLOYMENT_VERSION: ${{ steps.version.outputs.version }}
-        CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
-        GITHUB_RUN_NUMBER: ${{ github.run_number }}
-        GITHUB_SHA: ${{ github.sha }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITHUB_REPOSITORY: ${{ github.repository }}
-        GITHUB_RUN_ID: ${{ github.run_id }}
-        EMAIL_NOTIFICATIONS_ENABLED: ${{ secrets.EMAIL_NOTIFICATIONS_ENABLED }}
-        EMAIL_RECIPIENTS_DEPLOYMENT: ${{ secrets.EMAIL_RECIPIENTS_DEPLOYMENT }}
-        EMAIL_RECIPIENTS_CRITICAL: ${{ secrets.EMAIL_RECIPIENTS_CRITICAL }}
-        SMTP_HOST: ${{ secrets.SMTP_HOST }}
-        SMTP_USER: ${{ secrets.SMTP_USER }}
-        SMTP_PASS: ${{ secrets.SMTP_PASS }}
-        SLACK_NOTIFICATIONS_ENABLED: ${{ secrets.SLACK_NOTIFICATIONS_ENABLED }}
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        GITHUB_CREATE_ISSUES: 'true'
-        GITHUB_ISSUE_ASSIGNEES: ${{ secrets.GITHUB_ISSUE_ASSIGNEES }}
-      run: |
-        echo "🚨 Chrome Web Store deployment failed!"
-        
-        # Install dependencies for notification scripts
-        npm ci
-        
-        # Send failure notifications
-        ERROR_MESSAGE="Chrome Web Store deployment failed for version ${{ steps.version.outputs.version }}"
-        node scripts/notification-manager.js failure "${{ steps.version.outputs.version }}" "$ERROR_MESSAGE"
-        node scripts/email-notification-service.js failure "${{ steps.version.outputs.version }}" "$ERROR_MESSAGE"
-        node scripts/github-issue-manager.js chrome-store-failure "${{ steps.version.outputs.version }}" "$ERROR_MESSAGE"
-        
-    - name: Create GitHub Issue for Chrome Web Store Failure
-      if: failure()
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const fs = require('fs');
-          
-          // Check if issue data was created by notification scripts
-          const issueFiles = [
-            'chrome-store-failure-issue.json',
-            'deployment-failure-issue.json'
-          ];
-          
-          for (const issueFile of issueFiles) {
-            if (fs.existsSync(issueFile)) {
-              try {
-                const issueData = JSON.parse(fs.readFileSync(issueFile, 'utf8'));
-                
-                const issue = await github.rest.issues.create({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  title: issueData.title,
-                  body: issueData.body,
-                  labels: issueData.labels,
-                  assignees: issueData.assignees || []
-                });
-                
-                console.log(`✅ Created issue #${issue.data.number}: ${issueData.title}`);
-              } catch (error) {
-                console.error(`❌ Failed to create issue from ${issueFile}:`, error.message);
+
+            const relatedPR = prs.data.find(pr => 
+              pr.merge_commit_sha === context.sha ||
+              pr.head.sha === context.sha
+            );
+
+            if (relatedPR) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: relatedPR.number,
+                body: comment
+              });
+            }
+
+      - name: Notify on failure
+        if: failure()
+        env:
+          DEPLOYMENT_VERSION: ${{ steps.version.outputs.version }}
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          EMAIL_NOTIFICATIONS_ENABLED: ${{ secrets.EMAIL_NOTIFICATIONS_ENABLED }}
+          EMAIL_RECIPIENTS_DEPLOYMENT: ${{ secrets.EMAIL_RECIPIENTS_DEPLOYMENT }}
+          EMAIL_RECIPIENTS_CRITICAL: ${{ secrets.EMAIL_RECIPIENTS_CRITICAL }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SLACK_NOTIFICATIONS_ENABLED: ${{ secrets.SLACK_NOTIFICATIONS_ENABLED }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          GITHUB_CREATE_ISSUES: "true"
+          GITHUB_ISSUE_ASSIGNEES: ${{ secrets.GITHUB_ISSUE_ASSIGNEES }}
+        run: |
+          echo "🚨 Chrome Web Store deployment failed!"
+
+          # Install dependencies for notification scripts
+          npm ci
+
+          # Send failure notifications
+          ERROR_MESSAGE="Chrome Web Store deployment failed for version ${{ steps.version.outputs.version }}"
+          node scripts/notification-manager.js failure "${{ steps.version.outputs.version }}" "$ERROR_MESSAGE"
+          node scripts/email-notification-service.js failure "${{ steps.version.outputs.version }}" "$ERROR_MESSAGE"
+          node scripts/github-issue-manager.js chrome-store-failure "${{ steps.version.outputs.version }}" "$ERROR_MESSAGE"
+
+      - name: Create GitHub Issue for Chrome Web Store Failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            // Check if issue data was created by notification scripts
+            const issueFiles = [
+              'chrome-store-failure-issue.json',
+              'deployment-failure-issue.json'
+            ];
+
+            for (const issueFile of issueFiles) {
+              if (fs.existsSync(issueFile)) {
+                try {
+                  const issueData = JSON.parse(fs.readFileSync(issueFile, 'utf8'));
+                  
+                  const issue = await github.rest.issues.create({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    title: issueData.title,
+                    body: issueData.body,
+                    labels: issueData.labels,
+                    assignees: issueData.assignees || []
+                  });
+                  
+                  console.log(`✅ Created issue #${issue.data.number}: ${issueData.title}`);
+                } catch (error) {
+                  console.error(`❌ Failed to create issue from ${issueFile}:`, error.message);
+                }
               }
             }
-          }
 
   notify-success:
     name: Notify Successful Deployment
     runs-on: ubuntu-latest
     needs: deploy
     if: success()
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Send success notification
-      env:
-        DEPLOYMENT_VERSION: ${{ needs.deploy.outputs.version }}
-        CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
-        GITHUB_RUN_NUMBER: ${{ github.run_number }}
-        GITHUB_SHA: ${{ github.sha }}
-        EMAIL_NOTIFICATIONS_ENABLED: ${{ secrets.EMAIL_NOTIFICATIONS_ENABLED }}
-        EMAIL_RECIPIENTS_DEPLOYMENT: ${{ secrets.EMAIL_RECIPIENTS_DEPLOYMENT }}
-        SMTP_HOST: ${{ secrets.SMTP_HOST }}
-        SMTP_USER: ${{ secrets.SMTP_USER }}
-        SMTP_PASS: ${{ secrets.SMTP_PASS }}
-        SLACK_NOTIFICATIONS_ENABLED: ${{ secrets.SLACK_NOTIFICATIONS_ENABLED }}
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-      run: |
-        echo "🎉 Chrome Web Store deployment completed successfully!"
-        echo "Version ${{ needs.deploy.outputs.version }} is now available to users."
-        
-        # Send success notifications
-        node scripts/notification-manager.js success "${{ needs.deploy.outputs.version }}"
-        node scripts/email-notification-service.js success "${{ needs.deploy.outputs.version }}"
-        
-    - name: Start Chrome Web Store monitoring
-      env:
-        CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
-        CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
-        CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
-        CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
-        DEPLOYMENT_VERSION: ${{ needs.deploy.outputs.version }}
-      run: |
-        echo "🔍 Starting post-deployment monitoring..."
-        node scripts/chrome-store-monitor.js check
-        
-    - name: Upload success notification artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: success-notification-reports-${{ github.run_number }}
-        path: |
-          notification-summary.json
-          email-notification.json
-          chrome-store-status-latest.json
-        retention-days: 30
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Send success notification
+        env:
+          DEPLOYMENT_VERSION: ${{ needs.deploy.outputs.version }}
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_SHA: ${{ github.sha }}
+          EMAIL_NOTIFICATIONS_ENABLED: ${{ secrets.EMAIL_NOTIFICATIONS_ENABLED }}
+          EMAIL_RECIPIENTS_DEPLOYMENT: ${{ secrets.EMAIL_RECIPIENTS_DEPLOYMENT }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SLACK_NOTIFICATIONS_ENABLED: ${{ secrets.SLACK_NOTIFICATIONS_ENABLED }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          echo "🎉 Chrome Web Store deployment completed successfully!"
+          echo "Version ${{ needs.deploy.outputs.version }} is now available to users."
+
+          # Send success notifications
+          node scripts/notification-manager.js success "${{ needs.deploy.outputs.version }}"
+          node scripts/email-notification-service.js success "${{ needs.deploy.outputs.version }}"
+
+      - name: Start Chrome Web Store monitoring
+        env:
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          DEPLOYMENT_VERSION: ${{ needs.deploy.outputs.version }}
+        run: |
+          echo "🔍 Starting post-deployment monitoring..."
+          node scripts/chrome-store-monitor.js check
+
+      - name: Upload success notification artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: success-notification-reports-${{ github.run_number }}
+          path: |
+            notification-summary.json
+            email-notification.json
+            chrome-store-status-latest.json
+          retention-days: 30
 
   rollback:
     name: Emergency Rollback
     runs-on: ubuntu-latest
     if: failure() && github.event_name == 'release'
     needs: deploy
-    
+
     steps:
-    - name: Create rollback instructions
-      run: |
-        echo "🚨 Deployment failed - Rollback instructions:"
-        echo "1. Go to Chrome Web Store Developer Dashboard"
-        echo "2. Select the previous working version"
-        echo "3. Publish the previous version"
-        echo "4. Monitor for user reports"
-        echo ""
-        echo "Extension ID: ${{ secrets.CHROME_EXTENSION_ID }}"
-        echo "Failed Version: ${{ needs.deploy.outputs.version }}"
+      - name: Create rollback instructions
+        run: |
+          echo "🚨 Deployment failed - Rollback instructions:"
+          echo "1. Go to Chrome Web Store Developer Dashboard"
+          echo "2. Select the previous working version"
+          echo "3. Publish the previous version"
+          echo "4. Monitor for user reports"
+          echo ""
+          echo "Extension ID: ${{ secrets.CHROME_EXTENSION_ID }}"
+          echo "Failed Version: ${{ needs.deploy.outputs.version }}"

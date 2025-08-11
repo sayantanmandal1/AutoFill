@@ -113,7 +113,7 @@ jobs:
         [skip ci]"
         
         # Push changes
-        git push origin HEAD:main
+        git push origin HEAD:master
         
         echo "✅ Changelog updated and pushed to repository"
         

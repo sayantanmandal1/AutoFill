@@ -43,7 +43,15 @@
     "email:summary": "node scripts/email-notification-service.js summary",
     "issues:deployment-failure": "node scripts/github-issue-manager.js deployment-failure",
     "issues:chrome-store-failure": "node scripts/github-issue-manager.js chrome-store-failure",
-    "issues:test-failure": "node scripts/github-issue-manager.js test-failure"
+    "issues:test-failure": "node scripts/github-issue-manager.js test-failure",
+    "security:setup": "node scripts/setup-security.js run",
+    "security:validate": "node scripts/credential-manager.js validate",
+    "security:test": "node scripts/credential-manager.js test",
+    "security:report": "node scripts/credential-manager.js report",
+    "security:rotation-check": "node scripts/api-key-rotation.js check",
+    "security:rotation-instructions": "node scripts/api-key-rotation.js oauth-instructions",
+    "security:backup": "node scripts/api-key-rotation.js backup",
+    "security:audit": "npm audit --audit-level=moderate && npx audit-ci --config .audit-ci.json"
   },
   "keywords": [
     "chrome-extension",
