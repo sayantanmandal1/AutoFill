@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}} - Job Application Autofill Extension</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/prism.css">
+    <link rel="icon" type="image/png" href="assets/icon32.png">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <img src="assets/icon32.png" alt="Extension Icon">
+                <span>Job Application Autofill</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="api.html" class="nav-link">API</a></li>
+                <li><a href="smart-fields.html" class="nav-link">Smart Fields</a></li>
+                <li><a href="examples.html" class="nav-link">Examples</a></li>
+                <li><a href="installation.html" class="nav-link">Installation</a></li>
+            </ul>
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Search documentation...">
+                <div id="search-results" class="search-results"></div>
+            </div>
+        </div>
+    </nav>
+    
+    <main class="main-content">
+        {{content}}
+    </main>
+    
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2024 Job Application Autofill Extension. Open Source MIT License.</p>
+            <div class="footer-links">
+                <a href="https://github.com/sayantanmandal1/job-application-autofill">GitHub</a>
+                <a href="https://github.com/sayantanmandal1/job-application-autofill/issues">Issues</a>
+                <a href="https://github.com/sayantanmandal1/job-application-autofill/blob/main/CONTRIBUTING.md">Contributing</a>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="js/prism.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

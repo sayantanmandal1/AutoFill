@@ -297,6 +297,34 @@ Contributions are welcome! Please read our contributing guidelines:
 - Add tests for new functionality
 - Update documentation as needed
 - Ensure browser compatibility across Chrome, Brave, and Edge
+- Use conventional commit format for automatic changelog generation
+
+### Automated Release Process
+
+This project uses automated changelog generation and release management:
+
+```bash
+# Generate changelog automatically
+npm run changelog:auto
+
+# Preview changelog changes
+npm run changelog:dry-run
+
+# Manual version release
+npm run version:release -- 1.2.3
+
+# Generate release notes
+npm run release:notes
+```
+
+**Commit Message Format**: Use conventional commits for automatic categorization:
+- `feat:` for new features
+- `fix:` for bug fixes  
+- `docs:` for documentation
+- `test:` for tests
+- `ci:` for CI/CD changes
+
+See [Changelog Automation Guide](docs/CHANGELOG_AUTOMATION.md) for detailed information.
 
 ## 📝 License
 
@@ -356,10 +384,20 @@ Please use the [GitHub Issues](https://github.com/yourusername/job-application-a
 
 ## 📚 Documentation
 
-- [Browser Compatibility Report](BROWSER_COMPATIBILITY.md)
-- [API Documentation](docs/API.md)
-- [Contributing Guidelines](CONTRIBUTING.md)
-- [Changelog](CHANGELOG.md)
+### User Documentation
+- [Installation Guide](docs/INSTALLATION.md) - Comprehensive setup instructions
+- [Troubleshooting Guide](docs/TROUBLESHOOTING.md) - Solutions for common issues
+- [Quick Start Guide](QUICK_START.md) - Get up and running quickly
+
+### Developer Documentation
+- [API Documentation](docs/API.md) - Technical API reference
+- [Contributing Guidelines](CONTRIBUTING.md) - How to contribute to the project
+- [Debugging Guide](DEBUGGING_GUIDE.md) - Field matching and technical debugging
+- [Chrome Web Store Setup](docs/CHROME_WEB_STORE_SETUP.md) - Auto-update deployment guide
+
+### Project Information
+- [Browser Compatibility Report](BROWSER_COMPATIBILITY.md) - Supported browsers and features
+- [Changelog](CHANGELOG.md) - Version history and updates
 
 ## 🙏 Acknowledgments
 

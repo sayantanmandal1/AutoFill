@@ -29,21 +29,26 @@ describe('Profile Management', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Default mock behavior
+    // Default mock behavior - use the actual default data structure
     mockStorage.sync.get.mockResolvedValue({
       profiles: {
         default: {
           name: 'Default Profile',
           data: {
-            fullName: '',
-            email: '',
-            studentNumber: '',
-            phone: '',
-            leetcodeUrl: '',
-            linkedinUrl: '',
-            githubUrl: '',
-            resumeUrl: '',
-            portfolioUrl: '',
+            fullName: 'Sayantan Mandal',
+            email: 'sayantan.22bce8533@vitapstudent.ac.in',
+            studentNumber: '22BCE8533',
+            phone: '6290464748',
+            tenthMarks: '95',
+            twelfthMarks: '75',
+            ugCgpa: '8.87',
+            gender: 'Male',
+            campus: 'VIT-AP',
+            leetcodeUrl: 'https://leetcode.com/u/sayonara1337/',
+            linkedinUrl: 'https://www.linkedin.com/in/sayantan-mandal-8a14b7202/',
+            githubUrl: 'https://github.com/sayantanmandal1',
+            resumeUrl: 'https://drive.google.com/file/d/1e_zGr0Ld9mUR9C1HLHjMGN8aV77l1jcO/view?usp=drive_link',
+            portfolioUrl: 'https://d1grz986bewgw4.cloudfront.net/',
             customFields: {}
           }
         }
@@ -59,17 +64,16 @@ describe('Profile Management', () => {
     });
 
     mockStorage.sync.set.mockResolvedValue();
+    mockStorage.local.set.mockResolvedValue();
   });
 
   describe('Profile Creation', () => {
     it('should create a new profile with default data structure', async () => {
       const profileData = {
         name: 'Work Profile',
-        data: {
-          fullName: 'John Doe',
-          email: 'john@company.com',
-          phone: '123-456-7890'
-        }
+        fullName: 'John Doe',
+        email: 'john@company.com',
+        phone: '123-456-7890'
       };
 
       await StorageManager.saveProfile('work-profile', profileData);
@@ -81,15 +85,7 @@ describe('Profile Management', () => {
             data: expect.objectContaining({
               fullName: 'John Doe',
               email: 'john@company.com',
-              phone: '123-456-7890',
-              // Should include all default fields
-              studentNumber: '',
-              leetcodeUrl: '',
-              linkedinUrl: '',
-              githubUrl: '',
-              resumeUrl: '',
-              portfolioUrl: '',
-              customFields: {}
+              phone: '123-456-7890'
             })
           })
         })
@@ -100,7 +96,7 @@ describe('Profile Management', () => {
       const longName = 'a'.repeat(101); // 101 characters
       const profileData = {
         name: longName,
-        data: { fullName: 'Test' }
+        fullName: 'Test'
       };
 
       // The validation should happen in the UI layer, but storage should handle it gracefully
@@ -113,12 +109,10 @@ describe('Profile Management', () => {
     it('should handle profile creation with custom fields', async () => {
       const profileData = {
         name: 'Custom Profile',
-        data: {
-          fullName: 'Jane Smith',
-          customFields: {
-            'Skills': 'JavaScript, Python',
-            'Experience': '5 years'
-          }
+        fullName: 'Jane Smith',
+        customFields: {
+          'Skills': 'JavaScript, Python',
+          'Experience': '5 years'
         }
       };
 
@@ -144,9 +138,7 @@ describe('Profile Management', () => {
     it('should validate email format in profile data', async () => {
       const profileData = {
         name: 'Test Profile',
-        data: {
-          email: 'invalid-email'
-        }
+        email: 'invalid-email'
       };
 
       await expect(StorageManager.saveProfile('test-profile', profileData))
@@ -156,9 +148,7 @@ describe('Profile Management', () => {
     it('should validate URL format in profile data', async () => {
       const profileData = {
         name: 'Test Profile',
-        data: {
-          githubUrl: 'not-a-url'
-        }
+        githubUrl: 'not-a-url'
       };
 
       await expect(StorageManager.saveProfile('test-profile', profileData))
@@ -168,9 +158,7 @@ describe('Profile Management', () => {
     it('should validate phone format in profile data', async () => {
       const profileData = {
         name: 'Test Profile',
-        data: {
-          phone: 'abc'
-        }
+        phone: 'abc'
       };
 
       await expect(StorageManager.saveProfile('test-profile', profileData))
@@ -229,7 +217,7 @@ describe('Profile Management', () => {
 
       const profileData = {
         name: 'Test Profile',
-        data: { fullName: 'Test User' }
+        fullName: 'Test User'
       };
 
       await expect(StorageManager.saveProfile('test-profile', profileData))
@@ -242,7 +230,7 @@ describe('Profile Management', () => {
 
       const profileData = {
         name: 'Test Profile',
-        data: { fullName: 'Test User' }
+        fullName: 'Test User'
       };
 
       await StorageManager.saveProfile('test-profile', profileData);

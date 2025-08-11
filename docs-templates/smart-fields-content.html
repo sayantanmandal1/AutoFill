@@ -1,0 +1,85 @@
+<div class="container">
+    <div class="page-header">
+        <h1>Smart Fields</h1>
+        <p>Interactive demonstrations of intelligent field detection and selection.</p>
+    </div>
+    
+    <div class="demo-section">
+        <h2>Gender Field Intelligence</h2>
+        <p>The extension automatically handles gender fields with smart selection logic.</p>
+        
+        <div class="demo-container">
+            <div class="demo-form">
+                <h3>Try it yourself:</h3>
+                <form id="gender-demo-form">
+                    <div class="form-group">
+                        <label for="gender-select">Gender:</label>
+                        <select id="gender-select" name="gender">
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="sex-select">Sex:</label>
+                        <select id="sex-select" name="sex">
+                            <option value="">Select</option>
+                            <option value="M">M</option>
+                            <option value="F">F</option>
+                        </select>
+                    </div>
+                    <button type="button" id="demo-gender-fill" class="btn btn-primary">Demo Smart Fill</button>
+                </form>
+            </div>
+            <div class="demo-explanation">
+                <h4>How it works:</h4>
+                <ul>
+                    <li><strong>Primary Match:</strong> Looks for "Male" option first</li>
+                    <li><strong>Fallback Patterns:</strong> Tries "M", "man", "boy"</li>
+                    <li><strong>Detection Keywords:</strong> "gender", "sex", "gender identity"</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="demo-section">
+        <h2>Campus Field Intelligence</h2>
+        <p>Specifically designed for VIT students with smart campus selection.</p>
+        
+        <div class="demo-container">
+            <div class="demo-form">
+                <h3>Try it yourself:</h3>
+                <form id="campus-demo-form">
+                    <div class="form-group">
+                        <label for="campus-select">Campus:</label>
+                        <select id="campus-select" name="campus">
+                            <option value="">Select Campus</option>
+                            <option value="VIT-AP">VIT-AP</option>
+                            <option value="VIT Chennai">VIT Chennai</option>
+                            <option value="VIT-Amaravathi">VIT-Amaravathi</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="university-select">University:</label>
+                        <select id="university-select" name="university">
+                            <option value="">Select University</option>
+                            <option value="amaravathi">Amaravathi</option>
+                            <option value="chennai">Chennai</option>
+                            <option value="ap">AP</option>
+                        </select>
+                    </div>
+                    <button type="button" id="demo-campus-fill" class="btn btn-primary">Demo Smart Fill</button>
+                </form>
+            </div>
+            <div class="demo-explanation">
+                <h4>How it works:</h4>
+                <ul>
+                    <li><strong>Primary Match:</strong> Looks for "VIT-AP" option first</li>
+                    <li><strong>Smart Patterns:</strong> Tries "VIT-Amaravathi", "VIT AP", "amaravathi", "ap"</li>
+                    <li><strong>Detection Keywords:</strong> "campus", "college", "university", "institution"</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

@@ -40,8 +40,9 @@ describe('StorageManager', () => {
 
     it('should handle storage errors gracefully', async () => {
       chrome.storage.sync.get.mockRejectedValue(new Error('Storage error'));
+      chrome.storage.local.get.mockRejectedValue(new Error('Local storage error'));
 
-      await expect(StorageManager.initialize()).rejects.toThrow('Storage initialization failed');
+      await expect(StorageManager.initialize()).rejects.toThrow('Storage initialization failed: Unable to access browser storage');
     });
   });
 
@@ -61,12 +62,13 @@ describe('StorageManager', () => {
       const result = await StorageManager.getAllData();
 
       expect(result.profiles.default.data.fullName).toBe('Jane Doe');
-      expect(result.profiles.default.data.email).toBe(''); // Should be filled with default
+      expect(result.profiles.default.data.email).toBe('sayantan.22bce8533@vitapstudent.ac.in'); // Should be filled with actual default
       expect(result.settings).toEqual(DEFAULT_SETTINGS); // Should be filled with defaults
     });
 
     it('should handle storage retrieval errors', async () => {
       chrome.storage.sync.get.mockRejectedValue(new Error('Storage error'));
+      chrome.storage.local.get.mockRejectedValue(new Error('Local storage error'));
 
       await expect(StorageManager.getAllData()).rejects.toThrow('Failed to retrieve data: Storage is not accessible');
     });

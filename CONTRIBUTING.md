@@ -29,17 +29,74 @@ Thank you for your interest in contributing to the Job Application Autofill Exte
 - Understanding of Chrome Extension APIs
 
 #### Development Setup
+
+**Step 1: Environment Prerequisites**
 ```bash
-# Fork and clone the repository
+# Check Node.js version (v14+ required)
+node --version
+
+# Check npm version (v6+ required)
+npm --version
+
+# Check Git version
+git --version
+
+# Install recommended tools
+npm install -g vitest  # For running tests
+npm install -g eslint  # For code linting
+```
+
+**Step 2: Repository Setup**
+```bash
+# Fork the repository on GitHub first, then clone your fork
 git clone https://github.com/yourusername/job-application-autofill.git
 cd job-application-autofill
+
+# Add upstream remote for syncing
+git remote add upstream https://github.com/originalowner/job-application-autofill.git
 
 # Install dependencies
 npm install
 
-# Run tests to ensure everything works
-npm test
+# Verify installation
+npm run validate
 ```
+
+**Step 3: Browser Extension Setup**
+```bash
+# Load extension in Chrome for development
+# 1. Open Chrome → chrome://extensions/
+# 2. Enable "Developer mode"
+# 3. Click "Load unpacked" → select project folder
+# 4. Extension should appear in toolbar
+
+# For other browsers:
+# Brave: brave://extensions/
+# Edge: edge://extensions/
+```
+
+**Step 4: Development Verification**
+```bash
+# Run all tests to ensure everything works
+npm test
+
+# Run cross-browser compatibility tests
+npm run test:cross-browser
+
+# Run linting
+npm run lint
+
+# Start development server (if applicable)
+npm run dev
+```
+
+**Step 5: IDE Setup (Recommended)**
+- **VS Code Extensions**:
+  - ESLint
+  - Prettier
+  - Chrome Extension Development
+  - JavaScript (ES6) code snippets
+- **Settings**: Use project's `.vscode/settings.json` if available
 
 #### Making Changes
 1. **Create a feature branch**:
@@ -237,17 +294,112 @@ Follow semantic versioning (semver):
 - Support for major browsers
 - Zero security vulnerabilities
 
+## 🔄 Development Workflow
+
+### Daily Development Process
+```bash
+# Start your development session
+git checkout main
+git pull upstream main
+git checkout -b feature/your-feature-name
+
+# Make changes and test frequently
+npm run test:watch  # Runs tests in watch mode
+
+# Before committing
+npm run lint:fix    # Fix linting issues
+npm test           # Run all tests
+npm run validate   # Run full validation
+
+# Commit and push
+git add .
+git commit -m "feat: your feature description"
+git push origin feature/your-feature-name
+```
+
+### Testing Your Changes
+```bash
+# Unit tests
+npm test
+
+# Integration tests
+npm run test:integration
+
+# Cross-browser tests (requires browsers installed)
+npm run test:cross-browser
+
+# Performance tests
+npm run test:performance
+
+# Manual testing checklist:
+# 1. Load extension in browser
+# 2. Test on Google Forms
+# 3. Test on job application sites
+# 4. Test keyboard shortcuts
+# 5. Test data persistence
+# 6. Test across different browsers
+```
+
+### Code Quality Checks
+```bash
+# Linting
+npm run lint
+npm run lint:fix
+
+# Type checking (if using TypeScript)
+npm run type-check
+
+# Security audit
+npm audit
+npm audit fix
+
+# Bundle analysis
+npm run analyze
+```
+
+### Debugging Development Issues
+```bash
+# Enable debug mode in browser console
+localStorage.setItem('autofill_debug', 'true');
+
+# Check extension loading
+chrome.runtime.getManifest()
+
+# Monitor extension messages
+chrome.runtime.onMessage.addListener(console.log);
+
+# Test content script injection
+console.log('Content script loaded:', typeof AutofillManager !== 'undefined');
+```
+
 ## 📞 Getting Help
 
 ### Communication Channels
 - **GitHub Issues**: Bug reports and feature requests
 - **GitHub Discussions**: General questions and ideas
 - **Code Reviews**: Pull request discussions
+- **Discord/Slack**: Real-time development chat (if available)
 
-### Resources
-- [Chrome Extension Documentation](https://developer.chrome.com/docs/extensions/)
-- [Manifest V3 Migration Guide](https://developer.chrome.com/docs/extensions/mv3/intro/)
-- [Web Extension APIs](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions)
+### Development Resources
+- **Extension APIs**:
+  - [Chrome Extension Documentation](https://developer.chrome.com/docs/extensions/)
+  - [Manifest V3 Migration Guide](https://developer.chrome.com/docs/extensions/mv3/intro/)
+  - [Web Extension APIs](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions)
+- **Testing Resources**:
+  - [Vitest Documentation](https://vitest.dev/)
+  - [Playwright Testing](https://playwright.dev/)
+  - [Chrome Extension Testing](https://developer.chrome.com/docs/extensions/mv3/tut_debugging/)
+- **JavaScript/Web Development**:
+  - [MDN Web Docs](https://developer.mozilla.org/)
+  - [JavaScript.info](https://javascript.info/)
+  - [Web APIs](https://developer.mozilla.org/en-US/docs/Web/API)
+
+### Getting Unstuck
+1. **Check Documentation**: Review all docs in the `/docs` folder
+2. **Search Issues**: Look for similar problems in GitHub issues
+3. **Debug Mode**: Enable debug logging to understand what's happening
+4. **Ask Questions**: Create a GitHub discussion for help
+5. **Pair Programming**: Request code review or pair programming session
 
 ## 🏆 Recognition
 

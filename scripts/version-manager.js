@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const ChangelogGenerator = require('./changelog-generator');
 
 /**
  * Version Manager for Chrome Extension
@@ -154,74 +155,67 @@ class VersionManager {
   }
 
   /**
-   * Generate changelog from git commits
+   * Generate changelog from git commits using enhanced changelog generator
    * @param {string} fromTag - Starting tag (optional)
    * @param {string} toTag - Ending tag (optional, defaults to HEAD)
+   * @param {string} version - Version for changelog entry
    */
-  generateChangelog(fromTag = null, toTag = 'HEAD') {
-    console.log('📋 Generating changelog from git commits...');
+  async generateChangelog(fromTag = null, toTag = 'HEAD', version = null) {
+    console.log('📋 Generating enhanced changelog from git commits...');
 
     try {
-      let gitCommand;
-      if (fromTag) {
-        gitCommand = `git log ${fromTag}..${toTag} --oneline --pretty=format:"- %s (%h)"`;
-      } else {
-        gitCommand = `git log --oneline --pretty=format:"- %s (%h)" -10`; // Last 10 commits
-      }
-
-      const changelog = execSync(gitCommand, { encoding: 'utf8' }).trim();
+      const changelogGenerator = new ChangelogGenerator();
       
-      if (!changelog) {
-        console.log('⚠️ No commits found for changelog');
-        return '';
-      }
+      const result = await changelogGenerator.generateChangelog({
+        version,
+        fromTag,
+        toRef: toTag,
+        autoVersion: !version, // Auto-determine version if not provided
+        dryRun: false
+      });
 
-      console.log('✅ Changelog generated');
-      return changelog;
+      if (result.success) {
+        console.log('✅ Enhanced changelog generated successfully');
+        return result;
+      } else {
+        console.log('⚠️ No commits found for changelog');
+        return null;
+      }
     } catch (error) {
       console.log('⚠️ Failed to generate changelog:', error.message);
-      return '';
+      return null;
     }
   }
 
   /**
-   * Update CHANGELOG.md file
+   * Update CHANGELOG.md file using enhanced changelog generator
    * @param {string} version - Version being released
-   * @param {string} changelog - Changelog content
+   * @param {string} fromTag - Starting tag for changelog generation
    */
-  updateChangelogFile(version, changelog) {
-    const changelogPath = path.resolve('CHANGELOG.md');
-    const date = new Date().toISOString().split('T')[0];
-    
-    console.log(`📝 Updating CHANGELOG.md for version ${version}`);
+  async updateChangelogFile(version, fromTag = null) {
+    console.log(`📝 Updating CHANGELOG.md for version ${version} using enhanced generator`);
 
-    let existingContent = '';
-    if (fs.existsSync(changelogPath)) {
-      existingContent = fs.readFileSync(changelogPath, 'utf8');
-    } else {
-      existingContent = '# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n';
+    try {
+      const changelogGenerator = new ChangelogGenerator();
+      
+      const result = await changelogGenerator.generateChangelog({
+        version,
+        fromTag,
+        autoVersion: false,
+        dryRun: false
+      });
+
+      if (result.success) {
+        console.log('✅ CHANGELOG.md updated with enhanced formatting');
+        return result;
+      } else {
+        console.log('⚠️ Failed to update changelog');
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ Error updating changelog:', error.message);
+      throw error;
     }
-
-    const newEntry = `## [${version}] - ${date}\n\n${changelog}\n\n`;
-    
-    // Insert new entry after the header
-    const lines = existingContent.split('\n');
-    const headerEndIndex = lines.findIndex(line => line.startsWith('## '));
-    
-    if (headerEndIndex === -1) {
-      // No existing entries, add after header
-      const headerLines = lines.slice(0, 3); // Keep title and description
-      const newContent = [...headerLines, '', newEntry, ...lines.slice(3)].join('\n');
-      fs.writeFileSync(changelogPath, newContent);
-    } else {
-      // Insert before first existing entry
-      const beforeEntry = lines.slice(0, headerEndIndex);
-      const afterEntry = lines.slice(headerEndIndex);
-      const newContent = [...beforeEntry, newEntry, ...afterEntry].join('\n');
-      fs.writeFileSync(changelogPath, newContent);
-    }
-
-    console.log('✅ CHANGELOG.md updated');
   }
 
   /**
@@ -254,9 +248,9 @@ class VersionManager {
       // Generate and update changelog
       if (updateChangelog) {
         const lastTag = this.getVersionFromGitTag();
-        const changelog = this.generateChangelog(lastTag ? `v${lastTag}` : null);
-        if (changelog) {
-          this.updateChangelogFile(version, changelog);
+        const changelogResult = await this.updateChangelogFile(version, lastTag ? `v${lastTag}` : null);
+        if (!changelogResult) {
+          console.log('⚠️ Changelog update failed, continuing with release...');
         }
       }
 

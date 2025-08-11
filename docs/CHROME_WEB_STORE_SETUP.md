@@ -341,17 +341,255 @@ If automated deployment fails:
 
 ---
 
+## Step-by-Step Auto-Update Setup
+
+### Phase 1: Initial Setup (One-time)
+
+**Step 1: Chrome Web Store Account**
+1. Go to [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole)
+2. Pay $5 developer registration fee
+3. Create initial extension listing (can be unpublished)
+4. Save your Extension ID: `chrome.google.com/webstore/detail/[EXTENSION_ID]`
+
+**Step 2: Google Cloud Project**
+1. Visit [Google Cloud Console](https://console.cloud.google.com/)
+2. Create new project: "Chrome Extension Auto-Deploy"
+3. Enable Chrome Web Store API:
+   - APIs & Services → Library
+   - Search "Chrome Web Store API"
+   - Click Enable
+
+**Step 3: OAuth Credentials**
+1. APIs & Services → Credentials
+2. Create Credentials → OAuth 2.0 Client IDs
+3. Application type: "Desktop application"
+4. Name: "Extension Auto-Deploy"
+5. Download JSON credentials file
+
+**Step 4: Generate Refresh Token**
+```bash
+# Create token generator script
+cat > generate-token.js << 'EOF'
+const { google } = require('googleapis');
+const readline = require('readline');
+
+const CLIENT_ID = 'YOUR_CLIENT_ID_HERE';
+const CLIENT_SECRET = 'YOUR_CLIENT_SECRET_HERE';
+const REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob';
+const SCOPE = 'https://www.googleapis.com/auth/chromewebstore';
+
+const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
+
+const authUrl = oauth2Client.generateAuthUrl({
+  access_type: 'offline',
+  scope: SCOPE,
+});
+
+console.log('Visit this URL:', authUrl);
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+rl.question('Enter the code: ', async (code) => {
+  try {
+    const { tokens } = await oauth2Client.getToken(code);
+    console.log('Refresh Token:', tokens.refresh_token);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+  rl.close();
+});
+EOF
+
+# Install dependencies and run
+npm install googleapis
+node generate-token.js
+```
+
+### Phase 2: GitHub Configuration
+
+**Step 5: Repository Secrets**
+Go to GitHub repository → Settings → Secrets and variables → Actions
+
+Add these secrets:
+```
+CHROME_CLIENT_ID: [Your OAuth Client ID]
+CHROME_CLIENT_SECRET: [Your OAuth Client Secret]  
+CHROME_REFRESH_TOKEN: [Generated Refresh Token]
+CHROME_EXTENSION_ID: [Your Extension ID]
+```
+
+**Step 6: Workflow Files**
+Ensure these files exist in `.github/workflows/`:
+- `ci-cd.yml` (main CI/CD pipeline)
+- `chrome-store-deploy.yml` (Chrome Web Store deployment)
+
+**Step 7: Test Deployment**
+```bash
+# Create test release
+git tag v0.0.1-test
+git push origin v0.0.1-test
+
+# Check GitHub Actions for deployment status
+# Verify extension appears in Chrome Web Store Developer Dashboard
+```
+
+### Phase 3: Production Setup
+
+**Step 8: Production Release**
+```bash
+# Create production release
+git tag v1.0.0
+git push origin v1.0.0
+
+# GitHub Actions will automatically:
+# 1. Run tests
+# 2. Build extension
+# 3. Upload to Chrome Web Store
+# 4. Publish for users
+```
+
+**Step 9: Verify Auto-Updates**
+1. Install extension from Chrome Web Store
+2. Create new release (v1.0.1)
+3. Wait 1-2 hours for Chrome to check updates
+4. Verify extension updates automatically
+
+### Phase 4: Monitoring and Maintenance
+
+**Step 10: Set Up Monitoring**
+- GitHub Actions notifications
+- Chrome Web Store review alerts
+- User feedback monitoring
+- Error tracking and reporting
+
+## Auto-Update User Experience
+
+### How Users Receive Updates
+
+1. **Automatic Checking**: Chrome checks for updates every few hours
+2. **Background Download**: Updates download in background
+3. **Silent Installation**: Most updates install without user interaction
+4. **Restart Requirement**: Some updates may require browser restart
+
+### Update Frequency Guidelines
+
+- **Patch Updates** (bug fixes): Can be frequent (weekly)
+- **Minor Updates** (new features): Monthly or bi-weekly
+- **Major Updates** (breaking changes): Quarterly or less frequent
+
+### User Communication
+
+```javascript
+// Notify users of important updates
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === 'update') {
+    const currentVersion = chrome.runtime.getManifest().version;
+    console.log(`Extension updated to version ${currentVersion}`);
+    
+    // Show update notification if needed
+    if (isBreakingChange(details.previousVersion, currentVersion)) {
+      showUpdateNotification();
+    }
+  }
+});
+```
+
+## Troubleshooting Auto-Updates
+
+### Common Auto-Update Issues
+
+**Updates Not Publishing**
+1. Check Chrome Web Store review status
+2. Verify API credentials are valid
+3. Check GitHub Actions logs for errors
+4. Ensure version number is incremented
+
+**Users Not Receiving Updates**
+1. Chrome update frequency varies (1-24 hours)
+2. Some users may have disabled auto-updates
+3. Corporate environments may block updates
+4. Extension may be installed in developer mode
+
+**Deployment Failures**
+1. Check GitHub Actions workflow status
+2. Verify Chrome Web Store API quotas
+3. Review extension manifest for errors
+4. Check for policy violations
+
+### Debug Auto-Update Process
+
+```bash
+# Check current deployment status
+curl -H "Authorization: Bearer $ACCESS_TOKEN" \
+  "https://www.googleapis.com/chromewebstore/v1.1/items/$EXTENSION_ID"
+
+# Check upload status
+curl -H "Authorization: Bearer $ACCESS_TOKEN" \
+  "https://www.googleapis.com/chromewebstore/v1.1/items/$EXTENSION_ID/uploadState"
+
+# Manual publish (if needed)
+curl -X POST \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  "https://www.googleapis.com/chromewebstore/v1.1/items/$EXTENSION_ID/publish"
+```
+
+## Security Best Practices
+
+### Credential Management
+- Use GitHub encrypted secrets
+- Rotate credentials every 6 months
+- Limit access to deployment secrets
+- Monitor credential usage logs
+
+### Deployment Security
+- Require code reviews for releases
+- Use branch protection rules
+- Enable security scanning
+- Monitor for unauthorized changes
+
+### User Security
+- Minimize requested permissions
+- Validate all user inputs
+- Use Content Security Policy
+- Regular security audits
+
 ## Quick Setup Checklist
 
-- [ ] Chrome Web Store developer account created
+### Initial Setup (One-time)
+- [ ] Chrome Web Store developer account created ($5 fee paid)
 - [ ] Extension published (can be unlisted initially)
-- [ ] Google Cloud project with Chrome Web Store API enabled
-- [ ] OAuth 2.0 credentials generated
-- [ ] Refresh token obtained
-- [ ] GitHub repository secrets configured
-- [ ] Test deployment performed
-- [ ] Monitoring and alerts set up
-- [ ] Team access configured
-- [ ] Documentation updated
+- [ ] Google Cloud project created with Chrome Web Store API enabled
+- [ ] OAuth 2.0 credentials generated and downloaded
+- [ ] Refresh token obtained using token generation script
+- [ ] GitHub repository secrets configured with all credentials
+- [ ] GitHub Actions workflows configured and tested
+- [ ] Test deployment performed successfully
+
+### Production Readiness
+- [ ] Extension listing completed with descriptions and screenshots
+- [ ] Privacy policy created and linked (if handling user data)
+- [ ] Permissions justified and minimized
+- [ ] Monitoring and alerting configured
+- [ ] Team access and permissions configured
+- [ ] Documentation updated with auto-update information
+- [ ] User communication strategy planned
+- [ ] Rollback procedures documented and tested
+
+### Ongoing Maintenance
+- [ ] Regular credential rotation scheduled
+- [ ] Security scanning enabled and monitored
+- [ ] User feedback monitoring system in place
+- [ ] Performance monitoring configured
+- [ ] Backup and recovery procedures tested
+- [ ] Team training on deployment process completed
 
 Once completed, your extension will automatically update in the Chrome Web Store whenever you create a new GitHub release! 🚀
+
+### Expected Timeline
+- **Initial Setup**: 2-4 hours
+- **First Deployment**: 1-3 days (Chrome Web Store review)
+- **Subsequent Updates**: 1-24 hours (usually automatic)
+- **User Update Propagation**: 1-24 hours after publication

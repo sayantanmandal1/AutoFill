@@ -1,0 +1,200 @@
+name: Automated Changelog Generation
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to generate changelog for'
+        required: true
+        type: string
+      from_tag:
+        description: 'Starting tag (optional)'
+        required: false
+        type: string
+
+jobs:
+  generate-changelog:
+    name: Generate and Update Changelog
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch full history for changelog generation
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Configure Git
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+    - name: Generate changelog for tag push
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+      run: |
+        # Extract version from tag
+        VERSION=${GITHUB_REF#refs/tags/v}
+        echo "Generating changelog for version: $VERSION"
+        
+        # Get previous tag
+        PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+        echo "Previous tag: $PREVIOUS_TAG"
+        
+        # Generate changelog
+        if [ -n "$PREVIOUS_TAG" ]; then
+          node scripts/changelog-generator.js generate --version=$VERSION --from=$PREVIOUS_TAG
+        else
+          node scripts/changelog-generator.js generate --version=$VERSION
+        fi
+        
+        # Check if changelog was updated
+        if git diff --quiet CHANGELOG.md; then
+          echo "No changelog changes generated"
+          exit 0
+        fi
+        
+        echo "CHANGELOG_UPDATED=true" >> $GITHUB_ENV
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        
+    - name: Generate changelog for manual trigger
+      if: github.event_name == 'workflow_dispatch'
+      run: |
+        VERSION="${{ github.event.inputs.version }}"
+        FROM_TAG="${{ github.event.inputs.from_tag }}"
+        
+        echo "Generating changelog for version: $VERSION"
+        echo "From tag: $FROM_TAG"
+        
+        # Generate changelog
+        if [ -n "$FROM_TAG" ]; then
+          node scripts/changelog-generator.js generate --version=$VERSION --from=$FROM_TAG
+        else
+          node scripts/changelog-generator.js generate --version=$VERSION --auto-version
+        fi
+        
+        # Check if changelog was updated
+        if git diff --quiet CHANGELOG.md; then
+          echo "No changelog changes generated"
+          exit 0
+        fi
+        
+        echo "CHANGELOG_UPDATED=true" >> $GITHUB_ENV
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        
+    - name: Commit and push changelog
+      if: env.CHANGELOG_UPDATED == 'true'
+      run: |
+        # Add changelog to git
+        git add CHANGELOG.md
+        
+        # Commit changelog
+        git commit -m "docs: update changelog for version ${{ env.VERSION }}
+
+        - Automated changelog generation from commits
+        - Categorized changes by type (features, fixes, etc.)
+        - Added commit links and author information
+        
+        [skip ci]"
+        
+        # Push changes
+        git push origin HEAD:main
+        
+        echo "✅ Changelog updated and pushed to repository"
+        
+    - name: Create release notes
+      if: env.CHANGELOG_UPDATED == 'true'
+      run: |
+        # Generate release notes
+        RELEASE_NOTES=$(node scripts/changelog-generator.js release-notes --version=${{ env.VERSION }})
+        
+        # Save release notes to file
+        echo "$RELEASE_NOTES" > release-notes.md
+        
+        echo "✅ Release notes generated"
+        
+    - name: Upload release notes artifact
+      if: env.CHANGELOG_UPDATED == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-notes-${{ env.VERSION }}
+        path: release-notes.md
+        retention-days: 30
+        
+    - name: Comment on related PRs
+      if: env.CHANGELOG_UPDATED == 'true' && github.event_name == 'push'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const version = process.env.VERSION;
+          
+          // Find recent merged PRs
+          const { data: pulls } = await github.rest.pulls.list({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            state: 'closed',
+            sort: 'updated',
+            direction: 'desc',
+            per_page: 10
+          });
+          
+          const recentMergedPRs = pulls.filter(pr => 
+            pr.merged_at && 
+            new Date(pr.merged_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Last 7 days
+          );
+          
+          // Comment on recent PRs about changelog update
+          for (const pr of recentMergedPRs.slice(0, 5)) { // Limit to 5 most recent
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body: `🎉 **Changelog Updated**
+              
+              Your changes have been included in the automated changelog for version \`${version}\`.
+              
+              📋 [View Changelog](../blob/main/CHANGELOG.md)
+              🏷️ [View Release](../releases/tag/v${version})
+              
+              Thank you for your contribution! 🚀`
+            });
+          }
+          
+    - name: Summary
+      if: always()
+      run: |
+        echo "## 📋 Changelog Generation Summary" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ env.CHANGELOG_UPDATED }}" == "true" ]; then
+          echo "✅ **Changelog successfully generated and updated**" >> $GITHUB_STEP_SUMMARY
+          echo "- Version: ${{ env.VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Changelog file: [CHANGELOG.md](../blob/main/CHANGELOG.md)" >> $GITHUB_STEP_SUMMARY
+          echo "- Release notes artifact uploaded" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "ℹ️ **No changelog updates needed**" >> $GITHUB_STEP_SUMMARY
+          echo "- No new commits found for changelog generation" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🔧 Manual Changelog Generation" >> $GITHUB_STEP_SUMMARY
+        echo "To manually generate a changelog:" >> $GITHUB_STEP_SUMMARY
+        echo '```bash' >> $GITHUB_STEP_SUMMARY
+        echo 'npm run changelog:generate -- --version=1.2.3' >> $GITHUB_STEP_SUMMARY
+        echo 'npm run changelog:auto  # Auto-determine version' >> $GITHUB_STEP_SUMMARY
+        echo 'npm run changelog:dry-run  # Preview changes' >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY

@@ -220,43 +220,69 @@ jobs:
           
     - name: Notify on failure
       if: failure()
+      env:
+        DEPLOYMENT_VERSION: ${{ steps.version.outputs.version }}
+        CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+        GITHUB_RUN_NUMBER: ${{ github.run_number }}
+        GITHUB_SHA: ${{ github.sha }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        GITHUB_RUN_ID: ${{ github.run_id }}
+        EMAIL_NOTIFICATIONS_ENABLED: ${{ secrets.EMAIL_NOTIFICATIONS_ENABLED }}
+        EMAIL_RECIPIENTS_DEPLOYMENT: ${{ secrets.EMAIL_RECIPIENTS_DEPLOYMENT }}
+        EMAIL_RECIPIENTS_CRITICAL: ${{ secrets.EMAIL_RECIPIENTS_CRITICAL }}
+        SMTP_HOST: ${{ secrets.SMTP_HOST }}
+        SMTP_USER: ${{ secrets.SMTP_USER }}
+        SMTP_PASS: ${{ secrets.SMTP_PASS }}
+        SLACK_NOTIFICATIONS_ENABLED: ${{ secrets.SLACK_NOTIFICATIONS_ENABLED }}
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        GITHUB_CREATE_ISSUES: 'true'
+        GITHUB_ISSUE_ASSIGNEES: ${{ secrets.GITHUB_ISSUE_ASSIGNEES }}
+      run: |
+        echo "🚨 Chrome Web Store deployment failed!"
+        
+        # Install dependencies for notification scripts
+        npm ci
+        
+        # Send failure notifications
+        ERROR_MESSAGE="Chrome Web Store deployment failed for version ${{ steps.version.outputs.version }}"
+        node scripts/notification-manager.js failure "${{ steps.version.outputs.version }}" "$ERROR_MESSAGE"
+        node scripts/email-notification-service.js failure "${{ steps.version.outputs.version }}" "$ERROR_MESSAGE"
+        node scripts/github-issue-manager.js chrome-store-failure "${{ steps.version.outputs.version }}" "$ERROR_MESSAGE"
+        
+    - name: Create GitHub Issue for Chrome Web Store Failure
+      if: failure()
       uses: actions/github-script@v7
       with:
         script: |
-          const issue = {
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            title: `🚨 Chrome Web Store Deployment Failed - v${{ steps.version.outputs.version }}`,
-            body: `
-            ## Deployment Failure Report
-            
-            **Version:** ${{ steps.version.outputs.version }}
-            **Build:** #${{ github.run_number }}
-            **Commit:** ${context.sha.substring(0, 8)}
-            **Workflow:** [${context.workflow}](${context.payload.repository.html_url}/actions/runs/${context.runId})
-            
-            ### Failure Details
-            The Chrome Web Store deployment failed during the automated release process.
-            
-            ### Next Steps
-            1. Check the workflow logs for detailed error information
-            2. Verify Chrome Web Store API credentials are valid
-            3. Ensure the extension package meets Chrome Web Store requirements
-            4. Consider manual deployment if automated deployment continues to fail
-            
-            ### Manual Deployment
-            If needed, you can deploy manually:
-            1. Download the build artifacts from this workflow
-            2. Go to [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole)
-            3. Upload the extension package manually
-            
-            ---
-            *This issue was automatically created by the deployment workflow.*
-            `,
-            labels: ['bug', 'deployment', 'chrome-web-store']
-          };
+          const fs = require('fs');
           
-          await github.rest.issues.create(issue);
+          // Check if issue data was created by notification scripts
+          const issueFiles = [
+            'chrome-store-failure-issue.json',
+            'deployment-failure-issue.json'
+          ];
+          
+          for (const issueFile of issueFiles) {
+            if (fs.existsSync(issueFile)) {
+              try {
+                const issueData = JSON.parse(fs.readFileSync(issueFile, 'utf8'));
+                
+                const issue = await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: issueData.title,
+                  body: issueData.body,
+                  labels: issueData.labels,
+                  assignees: issueData.assignees || []
+                });
+                
+                console.log(`✅ Created issue #${issue.data.number}: ${issueData.title}`);
+              } catch (error) {
+                console.error(`❌ Failed to create issue from ${issueFile}:`, error.message);
+              }
+            }
+          }
 
   notify-success:
     name: Notify Successful Deployment
@@ -265,13 +291,59 @@ jobs:
     if: success()
     
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
     - name: Send success notification
+      env:
+        DEPLOYMENT_VERSION: ${{ needs.deploy.outputs.version }}
+        CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+        GITHUB_RUN_NUMBER: ${{ github.run_number }}
+        GITHUB_SHA: ${{ github.sha }}
+        EMAIL_NOTIFICATIONS_ENABLED: ${{ secrets.EMAIL_NOTIFICATIONS_ENABLED }}
+        EMAIL_RECIPIENTS_DEPLOYMENT: ${{ secrets.EMAIL_RECIPIENTS_DEPLOYMENT }}
+        SMTP_HOST: ${{ secrets.SMTP_HOST }}
+        SMTP_USER: ${{ secrets.SMTP_USER }}
+        SMTP_PASS: ${{ secrets.SMTP_PASS }}
+        SLACK_NOTIFICATIONS_ENABLED: ${{ secrets.SLACK_NOTIFICATIONS_ENABLED }}
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       run: |
         echo "🎉 Chrome Web Store deployment completed successfully!"
         echo "Version ${{ needs.deploy.outputs.version }} is now available to users."
         
-        # Add any additional notification logic here
-        # (Slack, Discord, email, etc.)
+        # Send success notifications
+        node scripts/notification-manager.js success "${{ needs.deploy.outputs.version }}"
+        node scripts/email-notification-service.js success "${{ needs.deploy.outputs.version }}"
+        
+    - name: Start Chrome Web Store monitoring
+      env:
+        CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+        CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+        CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+        CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+        DEPLOYMENT_VERSION: ${{ needs.deploy.outputs.version }}
+      run: |
+        echo "🔍 Starting post-deployment monitoring..."
+        node scripts/chrome-store-monitor.js check
+        
+    - name: Upload success notification artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: success-notification-reports-${{ github.run_number }}
+        path: |
+          notification-summary.json
+          email-notification.json
+          chrome-store-status-latest.json
+        retention-days: 30
 
   rollback:
     name: Emergency Rollback

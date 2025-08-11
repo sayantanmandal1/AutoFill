@@ -1,0 +1,91 @@
+<div class="container">
+    <div class="page-header">
+        <h1>Usage Examples</h1>
+        <p>Practical examples and code snippets for using the extension.</p>
+    </div>
+    
+    <div class="examples-grid">
+        <div class="example-card">
+            <h3>Basic Profile Setup</h3>
+            <pre><code class="language-javascript">// Set up your profile data
+const profileData = {
+    fullName: 'John Doe',
+    email: 'john.doe@university.edu',
+    phone: '+1234567890',
+    gender: 'Male',
+    campus: 'VIT-AP'
+};
+
+// Save profile
+await StorageManager.saveProfile('default', {
+    name: 'My Profile',
+    data: profileData
+});</code></pre>
+        </div>
+        
+        <div class="example-card">
+            <h3>Programmatic Autofill</h3>
+            <pre><code class="language-javascript">// Send autofill message to content script
+chrome.tabs.sendMessage(tabId, {
+    action: 'autofill',
+    data: profileData
+}, (response) => {
+    if (response.success) {
+        console.log(`Filled ${response.result.filledCount} fields`);
+    }
+});</code></pre>
+        </div>
+        
+        <div class="example-card">
+            <h3>Password Protection</h3>
+            <pre><code class="language-javascript">// Enable password protection
+await StorageManager.setupPassword('mySecurePassword');
+
+// Verify before accessing data
+const isValid = await StorageManager.verifyPassword('mySecurePassword');
+if (isValid) {
+    const profile = await StorageManager.getActiveProfile();
+}</code></pre>
+        </div>
+        
+        <div class="example-card">
+            <h3>Custom Field Mapping</h3>
+            <pre><code class="language-javascript">// Add custom fields to your profile
+const customData = {
+    ...profileData,
+    customFields: {
+        'Student ID': 'STU123456',
+        'Emergency Contact': '+0987654321',
+        'Dietary Preferences': 'Vegetarian'
+    }
+};</code></pre>
+        </div>
+    </div>
+    
+    <div class="integration-examples">
+        <h2>Integration Examples</h2>
+        
+        <div class="integration-card">
+            <h3>Google Forms Integration</h3>
+            <p>The extension automatically detects Google Forms and uses specialized selectors:</p>
+            <pre><code class="language-javascript">// Google Forms detection
+if (document.querySelector('[data-params*="google.com/forms"]')) {
+    // Use Google Forms specific field detection
+    const fields = detectGoogleFormFields();
+}</code></pre>
+        </div>
+        
+        <div class="integration-card">
+            <h3>Standard HTML Forms</h3>
+            <p>Works with any standard HTML form elements:</p>
+            <pre><code class="language-html">&lt;form&gt;
+    &lt;input type="text" name="fullName" placeholder="Full Name"&gt;
+    &lt;input type="email" name="email" placeholder="Email"&gt;
+    &lt;select name="gender"&gt;
+        &lt;option value="Male"&gt;Male&lt;/option&gt;
+        &lt;option value="Female"&gt;Female&lt;/option&gt;
+    &lt;/select&gt;
+&lt;/form&gt;</code></pre>
+        </div>
+    </div>
+</div>

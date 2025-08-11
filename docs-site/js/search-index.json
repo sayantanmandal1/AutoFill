@@ -1,0 +1,296 @@
+{
+  "pages": [
+    {
+      "title": "Home",
+      "url": "index.html",
+      "description": "Home documentation page"
+    },
+    {
+      "title": "API Reference",
+      "url": "api.html",
+      "description": "API Reference documentation page"
+    },
+    {
+      "title": "Smart Fields",
+      "url": "smart-fields.html",
+      "description": "Smart Fields documentation page"
+    },
+    {
+      "title": "Examples",
+      "url": "examples.html",
+      "description": "Examples documentation page"
+    },
+    {
+      "title": "Installation",
+      "url": "installation.html",
+      "description": "Installation documentation page"
+    }
+  ],
+  "methods": [
+    {
+      "title": "class PasswordManager",
+      "description": "Storage utility functions for Job Application Autofill Extension Handles chrome.storage.sync operations with data validation / /** Password utility functions for secure password handling",
+      "file": "storage.js",
+      "url": "api.html#class-PasswordManager"
+    },
+    {
+      "title": "hashPassword(password)",
+      "description": "Hash a password using SHA-256",
+      "file": "storage.js",
+      "url": "api.html#hashPassword-password-"
+    },
+    {
+      "title": "verifyPassword(password, hash)",
+      "description": "Verify a password against a hash",
+      "file": "storage.js",
+      "url": "api.html#verifyPassword-password--hash-"
+    },
+    {
+      "title": "generateSalt()",
+      "description": "Generate a random salt for additional security",
+      "file": "storage.js",
+      "url": "api.html#generateSalt--"
+    },
+    {
+      "title": "hashPasswordWithSalt(password, salt)",
+      "description": "Hash password with salt",
+      "file": "storage.js",
+      "url": "api.html#hashPasswordWithSalt-password--salt-"
+    },
+    {
+      "title": "class StorageManager",
+      "description": "Storage utility class for managing extension data",
+      "file": "storage.js",
+      "url": "api.html#class-StorageManager"
+    },
+    {
+      "title": "initialize()",
+      "description": "Initialize storage with default data structure if not exists",
+      "file": "storage.js",
+      "url": "api.html#initialize--"
+    },
+    {
+      "title": "getAllData()",
+      "description": "Get all stored data",
+      "file": "storage.js",
+      "url": "api.html#getAllData--"
+    },
+    {
+      "title": "getActiveProfile()",
+      "description": "Get active profile data",
+      "file": "storage.js",
+      "url": "api.html#getActiveProfile--"
+    },
+    {
+      "title": "saveProfile(profileId, profileData)",
+      "description": "Save profile data",
+      "file": "storage.js",
+      "url": "api.html#saveProfile-profileId--profileData-"
+    },
+    {
+      "title": "getSettings()",
+      "description": "Get settings",
+      "file": "storage.js",
+      "url": "api.html#getSettings--"
+    },
+    {
+      "title": "saveSettings(settings)",
+      "description": "Save settings",
+      "file": "storage.js",
+      "url": "api.html#saveSettings-settings-"
+    },
+    {
+      "title": "validateAndMergeData(data)",
+      "description": "Validate and merge data with defaults",
+      "file": "storage.js",
+      "url": "api.html#validateAndMergeData-data-"
+    },
+    {
+      "title": "validateProfileData(profileData)",
+      "description": "Validate profile data",
+      "file": "storage.js",
+      "url": "api.html#validateProfileData-profileData-"
+    },
+    {
+      "title": "isValidEmail(email)",
+      "description": "Validate email format",
+      "file": "storage.js",
+      "url": "api.html#isValidEmail-email-"
+    },
+    {
+      "title": "isValidUrl(url)",
+      "description": "Validate URL format",
+      "file": "storage.js",
+      "url": "api.html#isValidUrl-url-"
+    },
+    {
+      "title": "isValidPhone(phone)",
+      "description": "Validate phone number format",
+      "file": "storage.js",
+      "url": "api.html#isValidPhone-phone-"
+    },
+    {
+      "title": "validateSettings(settings)",
+      "description": "Validate settings data",
+      "file": "storage.js",
+      "url": "api.html#validateSettings-settings-"
+    },
+    {
+      "title": "isValidDomain(domain)",
+      "description": "Validate domain format",
+      "file": "storage.js",
+      "url": "api.html#isValidDomain-domain-"
+    },
+    {
+      "title": "setupPassword(password)",
+      "description": "Set up password protection",
+      "file": "storage.js",
+      "url": "api.html#setupPassword-password-"
+    },
+    {
+      "title": "changePassword(currentPassword, newPassword)",
+      "description": "Change password",
+      "file": "storage.js",
+      "url": "api.html#changePassword-currentPassword--newPassword-"
+    },
+    {
+      "title": "verifyPassword(password)",
+      "description": "Verify password for access",
+      "file": "storage.js",
+      "url": "api.html#verifyPassword-password-"
+    },
+    {
+      "title": "disablePasswordProtection(currentPassword)",
+      "description": "Disable password protection",
+      "file": "storage.js",
+      "url": "api.html#disablePasswordProtection-currentPassword-"
+    },
+    {
+      "title": "clearAll()",
+      "description": "Clear all data (for testing purposes)",
+      "file": "storage.js",
+      "url": "api.html#clearAll--"
+    },
+    {
+      "title": "class AutofillManager",
+      "description": "Content script for Job Application Autofill extension - Google Forms Optimized Handles form detection, field matching, and autofill operations across different form types / /** Main autofill manager class that handles form detection and filling operations Supports both Google Forms and standard HTML forms with intelligent field matching",
+      "file": "content.js",
+      "url": "api.html#class-AutofillManager"
+    },
+    {
+      "title": "constructor()()",
+      "description": "Initialize the AutofillManager with debug mode and message listener",
+      "file": "content.js",
+      "url": "api.html#constructor----"
+    },
+    {
+      "title": "isDebugMode()",
+      "description": "Check if debug mode is enabled via localStorage",
+      "file": "content.js",
+      "url": "api.html#isDebugMode--"
+    },
+    {
+      "title": "log(message, data",
+      "description": "Log debug messages when debug mode is enabled",
+      "file": "content.js",
+      "url": "api.html#log-message--data"
+    },
+    {
+      "title": "setupMessageListener()",
+      "description": "Set up Chrome extension message listener for autofill requests Listens for 'autofill' action messages from the extension popup",
+      "file": "content.js",
+      "url": "api.html#setupMessageListener--"
+    },
+    {
+      "title": "performAutofill(data)",
+      "description": "Perform the main autofill operation on the current page",
+      "file": "content.js",
+      "url": "api.html#performAutofill-data-"
+    },
+    {
+      "title": "isGoogleForm()",
+      "description": "Detect if the current page is a Google Form",
+      "file": "content.js",
+      "url": "api.html#isGoogleForm--"
+    },
+    {
+      "title": "detectGoogleFormFields()",
+      "description": "Detect and extract form fields from Google Forms Uses Google Forms specific selectors and DOM structure",
+      "file": "content.js",
+      "url": "api.html#detectGoogleFormFields--"
+    },
+    {
+      "title": "detectStandardFormFields()",
+      "description": "Detect and extract form fields from standard HTML forms",
+      "file": "content.js",
+      "url": "api.html#detectStandardFormFields--"
+    },
+    {
+      "title": "isGoogleFormFieldFillable(element)",
+      "description": "Check if a Google Form field element can be filled",
+      "file": "content.js",
+      "url": "api.html#isGoogleFormFieldFillable-element-"
+    },
+    {
+      "title": "isFieldFillable(element)",
+      "description": "Check if a standard form field element can be filled",
+      "file": "content.js",
+      "url": "api.html#isFieldFillable-element-"
+    },
+    {
+      "title": "extractGoogleFormFieldInfo(element)",
+      "description": "Extract field information from Google Form elements Uses multiple strategies to identify field labels and context",
+      "file": "content.js",
+      "url": "api.html#extractGoogleFormFieldInfo-element-"
+    },
+    {
+      "title": "extractFieldInfo(element)",
+      "description": "Extract field information from standard HTML form elements",
+      "file": "content.js",
+      "url": "api.html#extractFieldInfo-element-"
+    },
+    {
+      "title": "findNearbyText(element)",
+      "description": "Find nearby text content that might serve as field labels Searches through previous siblings and parent elements",
+      "file": "content.js",
+      "url": "api.html#findNearbyText-element-"
+    },
+    {
+      "title": "matchFieldsToData(fields, data)",
+      "description": "Match detected form fields to user profile data using intelligent pattern matching",
+      "file": "content.js",
+      "url": "api.html#matchFieldsToData-fields--data-"
+    },
+    {
+      "title": "fillFields(matches, isGoogleForm)",
+      "description": "Fill form fields with matched data values",
+      "file": "content.js",
+      "url": "api.html#fillFields-matches--isGoogleForm-"
+    },
+    {
+      "title": "fillGoogleFormField(element, value)",
+      "description": "Fill a Google Form field with the specified value Uses Google Forms specific event handling for proper form state updates",
+      "file": "content.js",
+      "url": "api.html#fillGoogleFormField-element--value-"
+    },
+    {
+      "title": "fillStandardField(element, value)",
+      "description": "Fill a standard HTML form field with the specified value",
+      "file": "content.js",
+      "url": "api.html#fillStandardField-element--value-"
+    },
+    {
+      "title": "fillSelectField(element, value, dataKey)",
+      "description": "Fill a select dropdown field with intelligent option matching Includes special handling for gender and campus fields with smart pattern matching",
+      "file": "content.js",
+      "url": "api.html#fillSelectField-element--value--dataKey-"
+    },
+    {
+      "title": "showToast(message, type",
+      "description": "Display a toast notification to the user",
+      "file": "content.js",
+      "url": "api.html#showToast-message--type"
+    }
+  ],
+  "content": []
+}
