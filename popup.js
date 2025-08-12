@@ -125,6 +125,13 @@ class PopupManager {
             email: '',
             studentNumber: '',
             phone: '',
+            tenthMarks: '',
+            twelfthMarks: '',
+            ugCgpa: '',
+            gender: '',
+            campus: '',
+            specialization: 'Computer Science and Engineering',
+            dateOfBirth: '2004-03-08',
             leetcodeUrl: '',
             linkedinUrl: '',
             githubUrl: '',
@@ -200,6 +207,8 @@ class PopupManager {
           ugCgpa: '8.87',
           gender: 'Male',
           campus: 'VIT-AP',
+          specialization: 'Computer Science and Engineering',
+          dateOfBirth: '2004-03-08',
           leetcodeUrl: 'https://leetcode.com/u/sayonara1337/',
           linkedinUrl: 'https://www.linkedin.com/in/sayantan-mandal-8a14b7202/',
           githubUrl: 'https://github.com/sayantanmandal1',
@@ -288,7 +297,7 @@ class PopupManager {
     const profileData = this.profiles[this.currentProfile]?.data || {};
 
     // Populate basic fields
-    const fields = ['fullName', 'email', 'studentNumber', 'phone', 'tenthMarks', 'twelfthMarks', 'ugCgpa', 'gender', 'campus', 'leetcodeUrl', 'linkedinUrl', 'githubUrl', 'resumeUrl', 'portfolioUrl'];
+    const fields = ['fullName', 'email', 'studentNumber', 'phone', 'tenthMarks', 'twelfthMarks', 'ugCgpa', 'gender', 'campus', 'specialization', 'dateOfBirth', 'leetcodeUrl', 'linkedinUrl', 'githubUrl', 'resumeUrl', 'portfolioUrl'];
     fields.forEach(field => {
       const element = document.getElementById(field.replace(/([A-Z])/g, '-$1').toLowerCase());
       if (element) {
@@ -716,6 +725,13 @@ class PopupManager {
           email: '',
           studentNumber: '',
           phone: '',
+          tenthMarks: '',
+          twelfthMarks: '',
+          ugCgpa: '',
+          gender: '',
+          campus: '',
+          specialization: 'Computer Science and Engineering',
+          dateOfBirth: '2004-03-08',
           leetcodeUrl: '',
           linkedinUrl: '',
           githubUrl: '',

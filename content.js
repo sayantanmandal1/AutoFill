@@ -462,6 +462,8 @@ class AutofillManager {
       ugCgpa: ['cgpa', 'gpa', 'undergraduate', 'ug cgpa', 'college gpa', 'university gpa', 'graduation', 'degree', 'bachelor'],
       gender: ['gender', 'sex', 'male', 'female', 'gender identity', 'sex identity'],
       campus: ['campus', 'college', 'university', 'institution', 'vit', 'amaravathi', 'ap'],
+      specialization: ['specialization', 'major', 'field of study', 'degree', 'branch', 'stream', 'discipline', 'course', 'program', 'field', 'study area', 'academic field', 'subject', 'department'],
+      dateOfBirth: ['dob', 'date of birth', 'birth date', 'birthday', 'birthdate', 'date birth', 'birth', 'born', 'born on', 'date born', 'birth day', 'birth-date', 'date-of-birth'],
       linkedinUrl: ['linkedin', 'linked in', 'linkedin profile', 'linkedin url', 'professional profile', 'linked-in', 'professional', 'social'],
       githubUrl: ['github', 'git hub', 'github profile', 'github url', 'repository', 'code profile', 'git-hub', 'coding', 'repo'],
       leetcodeUrl: ['leetcode', 'leet code', 'coding profile', 'algorithm profile', 'competitive programming', 'leet-code', 'coding', 'algorithm'],
@@ -665,6 +667,20 @@ class AutofillManager {
             filledCount++;
             this.log(`Filled select field with: ${value}`);
           }
+        } else if (dataKey === 'dateOfBirth') {
+          // Special handling for date fields with format conversion
+          const formattedValue = this.formatDateForField(element, value);
+          if (isGoogleForm) {
+            if (this.fillGoogleFormField(element, formattedValue)) {
+              filledCount++;
+              this.log(`Filled Google Form date field with: ${formattedValue}`);
+            }
+          } else {
+            if (this.fillStandardField(element, formattedValue)) {
+              filledCount++;
+              this.log(`Filled standard date field with: ${formattedValue}`);
+            }
+          }
         } else if (isGoogleForm) {
           if (this.fillGoogleFormField(element, value)) {
             filledCount++;
@@ -682,6 +698,86 @@ class AutofillManager {
     });
 
     return filledCount;
+  }
+
+  /**
+     * Format date value for different field types and formats
+     * Handles various date input formats and converts ISO date to appropriate format
+     * @param {HTMLElement} element - The form field element
+     * @param {string} value - The ISO date value (YYYY-MM-DD)
+     * @returns {string} Formatted date value appropriate for the field
+     */
+  formatDateForField(element, value) {
+    if (!value) return '';
+
+    try {
+      // If the value is already in ISO format (YYYY-MM-DD), use it directly for date inputs
+      if (element.type === 'date') {
+        return value; // ISO format is perfect for HTML5 date inputs
+      }
+
+      // Parse the ISO date
+      const date = new Date(value + 'T00:00:00'); // Add time to avoid timezone issues
+      
+      if (isNaN(date.getTime())) {
+        this.log('Invalid date value:', value);
+        return value; // Return original if parsing fails
+      }
+
+      // Check for common date format patterns in the field
+      const searchText = (element.placeholder || element.name || element.id || '').toLowerCase();
+      
+      // Format based on field hints or common patterns
+      if (searchText.includes('dd/mm/yyyy') || searchText.includes('dd-mm-yyyy')) {
+        // European format: DD/MM/YYYY or DD-MM-YYYY
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        return searchText.includes('/') ? `${day}/${month}/${year}` : `${day}-${month}-${year}`;
+      } else if (searchText.includes('mm/dd/yyyy') || searchText.includes('mm-dd-yyyy')) {
+        // American format: MM/DD/YYYY or MM-DD-YYYY
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        return searchText.includes('/') ? `${month}/${day}/${year}` : `${month}-${day}-${year}`;
+      } else if (searchText.includes('dd/mm/yy') || searchText.includes('dd-mm-yy')) {
+        // Short European format: DD/MM/YY or DD-MM-YY
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear().toString().slice(-2);
+        return searchText.includes('/') ? `${day}/${month}/${year}` : `${day}-${month}-${year}`;
+      } else if (searchText.includes('mm/dd/yy') || searchText.includes('mm-dd-yy')) {
+        // Short American format: MM/DD/YY or MM-DD-YY
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear().toString().slice(-2);
+        return searchText.includes('/') ? `${month}/${day}/${year}` : `${month}-${day}-${year}`;
+      }
+
+      // Default formats based on common patterns
+      // Try to detect existing format from placeholder or nearby text
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+
+      // Most common formats as fallback
+      const formats = [
+        `${day}/${month}/${year}`, // DD/MM/YYYY
+        `${month}/${day}/${year}`, // MM/DD/YYYY
+        `${day}-${month}-${year}`, // DD-MM-YYYY
+        `${month}-${day}-${year}`, // MM-DD-YYYY
+        `${year}-${month}-${day}`, // YYYY-MM-DD (ISO)
+        `${day}.${month}.${year}`, // DD.MM.YYYY (German style)
+        `${month}.${day}.${year}`  // MM.DD.YYYY
+      ];
+
+      // Return the first format (DD/MM/YYYY) as default
+      return formats[0];
+
+    } catch (error) {
+      this.log('Error formatting date:', error);
+      return value; // Return original value if formatting fails
+    }
   }
 
   /**
@@ -770,6 +866,9 @@ class AutofillManager {
     try {
       this.log(`Filling select field for ${dataKey} with value: ${value}`);
 
+      // Store original value for verification
+      const originalValue = element.value;
+
       // Get all options
       const options = Array.from(element.options);
       let selectedOption = null;
@@ -844,31 +943,178 @@ class AutofillManager {
       }
 
       if (selectedOption) {
+        // Enhanced event sequence for better framework compatibility
+        this.log(`Attempting to select option: ${selectedOption.text} (value: ${selectedOption.value})`);
+
+        // Step 1: Focus the element to ensure it's active
         element.focus();
+
+        // Step 2: Trigger mousedown event (some frameworks require this)
+        element.dispatchEvent(new MouseEvent('mousedown', {
+          bubbles: true,
+          cancelable: true,
+          view: window
+        }));
+
+        // Step 3: Trigger click event on the select element
+        element.dispatchEvent(new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          view: window
+        }));
+
+        // Step 4: Set the value and selected property
         element.value = selectedOption.value;
         selectedOption.selected = true;
 
-        // Trigger change events
-        const events = [
-          new Event('change', { bubbles: true }),
-          new Event('input', { bubbles: true }),
-          new Event('blur', { bubbles: true })
-        ];
-
-        events.forEach(event => {
-          element.dispatchEvent(event);
+        // Step 5: Clear other selections to ensure only our option is selected
+        options.forEach(opt => {
+          if (opt !== selectedOption) {
+            opt.selected = false;
+          }
         });
 
-        this.log(`Selected option: ${selectedOption.text} (value: ${selectedOption.value})`);
+        // Step 6: Trigger comprehensive event sequence
+        const events = [
+          // Input events for real-time validation
+          new Event('input', { bubbles: true, cancelable: true }),
+          
+          // Change event for form validation and dependent logic
+          new Event('change', { bubbles: true, cancelable: true }),
+          
+          // Focus events for framework state management
+          new FocusEvent('focusin', { bubbles: true, cancelable: true }),
+          new FocusEvent('focusout', { bubbles: true, cancelable: true }),
+          
+          // Mouse events for click simulation
+          new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window }),
+          
+          // Keyboard events for accessibility and framework compatibility
+          new KeyboardEvent('keydown', { 
+            bubbles: true, 
+            cancelable: true, 
+            key: 'Enter',
+            keyCode: 13,
+            which: 13
+          }),
+          new KeyboardEvent('keyup', { 
+            bubbles: true, 
+            cancelable: true, 
+            key: 'Enter',
+            keyCode: 13,
+            which: 13
+          }),
+          
+          // Blur event to finalize the selection
+          new FocusEvent('blur', { bubbles: true, cancelable: true })
+        ];
+
+        // Dispatch events with small delays for better compatibility
+        events.forEach((event, index) => {
+          setTimeout(() => {
+            try {
+              element.dispatchEvent(event);
+            } catch (eventError) {
+              this.log(`Error dispatching ${event.type} event:`, eventError);
+            }
+          }, index * 10); // 10ms delay between events
+        });
+
+        // Step 7: Additional framework-specific event handling
+        setTimeout(() => {
+          try {
+            // React-specific events
+            if (element._reactInternalFiber || element._reactInternalInstance) {
+              const reactEvent = new Event('change', { bubbles: true });
+              reactEvent.simulated = true;
+              element.dispatchEvent(reactEvent);
+            }
+
+            // Vue.js specific events
+            if (element.__vue__) {
+              element.__vue__.$emit('change', selectedOption.value);
+            }
+
+            // Angular specific events
+            if (element.ng339 || element.getAttribute('ng-model')) {
+              element.dispatchEvent(new Event('ng-change', { bubbles: true }));
+            }
+
+            // jQuery specific trigger (if jQuery is available)
+            if (window.jQuery && window.jQuery(element).length) {
+              window.jQuery(element).trigger('change');
+            }
+
+          } catch (frameworkError) {
+            this.log('Framework-specific event error (non-critical):', frameworkError);
+          }
+        }, 100); // Wait 100ms for all events to process
+
+        // Step 8: Verify the selection was successful
+        setTimeout(() => {
+          const finalValue = element.value;
+          const isSelectionSuccessful = finalValue === selectedOption.value;
+          
+          if (isSelectionSuccessful) {
+            this.log(`✅ Successfully selected option: ${selectedOption.text} (value: ${selectedOption.value})`);
+          } else {
+            this.log(`⚠️ Selection verification failed. Expected: ${selectedOption.value}, Actual: ${finalValue}`);
+            // Try one more time with a different approach
+            this.retrySelectFieldFill(element, selectedOption);
+          }
+        }, 150);
+
         return true;
       } else {
-        this.log(`No matching option found for value: ${value}`);
-        this.log('Available options:', options.map(opt => `${opt.text} (${opt.value})`));
+        this.log(`❌ No matching option found for value: ${value}`);
+        this.log('Available options:', options.map(opt => `"${opt.text}" (value: "${opt.value}")`));
+        
+        // Log additional debugging information
+        this.log('Search attempted with:', {
+          originalValue: value,
+          dataKey: dataKey,
+          lowercaseValue: value.toLowerCase(),
+          optionCount: options.length
+        });
+        
         return false;
       }
     } catch (error) {
-      this.log('Error filling select field:', error);
+      this.log('❌ Error filling select field:', error);
       return false;
+    }
+  }
+
+  /**
+   * Retry select field filling with alternative approach
+   * Used as fallback when initial selection verification fails
+   * @param {HTMLSelectElement} element - The select element
+   * @param {HTMLOptionElement} selectedOption - The option to select
+   */
+  retrySelectFieldFill(element, selectedOption) {
+    try {
+      this.log('Retrying select field fill with alternative approach...');
+      
+      // Alternative approach: Set selectedIndex directly
+      const optionIndex = Array.from(element.options).indexOf(selectedOption);
+      if (optionIndex >= 0) {
+        element.selectedIndex = optionIndex;
+        
+        // Trigger essential events only
+        element.dispatchEvent(new Event('change', { bubbles: true }));
+        element.dispatchEvent(new Event('input', { bubbles: true }));
+        
+        // Final verification
+        setTimeout(() => {
+          if (element.value === selectedOption.value) {
+            this.log('✅ Retry successful - option selected via selectedIndex');
+          } else {
+            this.log('❌ Retry failed - selection could not be completed');
+          }
+        }, 50);
+      }
+    } catch (retryError) {
+      this.log('Retry select field fill error:', retryError);
     }
   }
 

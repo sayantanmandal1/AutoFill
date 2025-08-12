@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Dropdown Test - Job Application Autofill</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        select:focus, input:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+        .test-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .test-button:hover {
+            background-color: #45a049;
+        }
+        .results {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+        .error {
+            background: #ffe8e8;
+            border-left-color: #f44336;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #555;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .instructions {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #ffc107;
+            margin-bottom: 20px;
+        }
+        .framework-test {
+            border: 2px dashed #007bff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .react-component {
+            background-color: #f0f8ff;
+        }
+        .vue-component {
+            background-color: #f0fff0;
+        }
+        .angular-component {
+            background-color: #fff5ee;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Select Dropdown Test Page</h1>
+    
+    <div class="instructions">
+        <h3>📋 Test Instructions:</h3>
+        <ol>
+            <li>Install the Job Application Autofill extension</li>
+            <li>Set up your profile data in the extension popup</li>
+            <li>Use the extension's "Autofill Now" button or Alt+Shift+F shortcut</li>
+            <li>Verify that select dropdowns are filled correctly with proper event handling</li>
+            <li>Check browser console for detailed logging (enable debug mode in extension)</li>
+        </ol>
+    </div>
+
+    <div class="form-container">
+        <h2>🎯 Basic Select Fields Test</h2>
+        <form id="basic-form">
+            <div class="form-group">
+                <label for="gender">Gender:</label>
+                <select id="gender" name="gender" required>
+                    <option value="">Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                    <option value="prefer-not-to-say">Prefer not to say</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="campus">Campus/University:</label>
+                <select id="campus" name="campus" required>
+                    <option value="">Select Campus</option>
+                    <option value="vit-ap">VIT-AP Amaravathi</option>
+                    <option value="vit-vellore">VIT Vellore</option>
+                    <option value="vit-chennai">VIT Chennai</option>
+                    <option value="vit-bhopal">VIT Bhopal</option>
+                    <option value="other-university">Other University</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="specialization">Field of Study/Specialization:</label>
+                <select id="specialization" name="specialization" required>
+                    <option value="">Select Specialization</option>
+                    <option value="computer-science">Computer Science and Engineering</option>
+                    <option value="information-technology">Information Technology</option>
+                    <option value="electronics">Electronics and Communication</option>
+                    <option value="mechanical">Mechanical Engineering</option>
+                    <option value="civil">Civil Engineering</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="experience">Work Experience:</label>
+                <select id="experience" name="experience">
+                    <option value="">Select Experience</option>
+                    <option value="0">No Experience</option>
+                    <option value="0-1">0-1 years</option>
+                    <option value="1-3">1-3 years</option>
+                    <option value="3-5">3-5 years</option>
+                    <option value="5+">5+ years</option>
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <div class="form-container">
+        <h2>🚀 Framework-Specific Tests</h2>
+        
+        <div class="framework-test react-component">
+            <h3>React-style Component</h3>
+            <div class="form-group">
+                <label for="react-framework">Preferred Framework:</label>
+                <select id="react-framework" name="framework" class="react-component" data-react="true">
+                    <option value="">Select Framework</option>
+                    <option value="react">React</option>
+                    <option value="vue">Vue.js</option>
+                    <option value="angular">Angular</option>
+                    <option value="svelte">Svelte</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="framework-test vue-component">
+            <h3>Vue.js-style Component</h3>
+            <div class="form-group">
+                <label for="vue-skill">Skill Level:</label>
+                <select id="vue-skill" name="skill-level" class="vue-component" v-model="skillLevel">
+                    <option value="">Select Skill Level</option>
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                    <option value="expert">Expert</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="framework-test angular-component">
+            <h3>Angular-style Component</h3>
+            <div class="form-group">
+                <label for="angular-position">Position Type:</label>
+                <select id="angular-position" name="position-type" class="angular-component" ng-model="positionType">
+                    <option value="">Select Position Type</option>
+                    <option value="full-time">Full-time</option>
+                    <option value="part-time">Part-time</option>
+                    <option value="contract">Contract</option>
+                    <option value="internship">Internship</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <h2>🧪 Edge Cases Test</h2>
+        <form id="edge-cases-form">
+            <div class="form-group">
+                <label for="empty-select">Empty Select (No Options):</label>
+                <select id="empty-select" name="empty-select">
+                    <!-- No options -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="disabled-select">Disabled Select:</label>
+                <select id="disabled-select" name="disabled-select" disabled>
+                    <option value="">Select Option</option>
+                    <option value="option1">Option 1</option>
+                    <option value="option2">Option 2</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="hidden-select">Hidden Select:</label>
+                <select id="hidden-select" name="hidden-select" style="display: none;">
+                    <option value="">Select Option</option>
+                    <option value="hidden1">Hidden Option 1</option>
+                    <option value="hidden2">Hidden Option 2</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="case-sensitive">Case Sensitive Matching:</label>
+                <select id="case-sensitive" name="case-sensitive">
+                    <option value="">Select Option</option>
+                    <option value="MALE">MALE (uppercase)</option>
+                    <option value="male">male (lowercase)</option>
+                    <option value="Male">Male (title case)</option>
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <div class="form-container">
+        <h2>🔍 Manual Testing Controls</h2>
+        <button class="test-button" onclick="enableDebugMode()">Enable Debug Mode</button>
+        <button class="test-button" onclick="logSelectStates()">Log Current Select States</button>
+        <button class="test-button" onclick="resetAllSelects()">Reset All Selects</button>
+        <button class="test-button" onclick="testEventHandling()">Test Event Handling</button>
+        
+        <div id="test-results" class="results" style="display: none;">
+            <h3>Test Results:</h3>
+            <div id="results-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // Enable debug mode for the extension
+        function enableDebugMode() {
+            localStorage.setItem('autofill_debug', 'true');
+            showResults('Debug mode enabled! Check browser console for detailed logs.', false);
+        }
+
+        // Log current state of all select elements
+        function logSelectStates() {
+            const selects = document.querySelectorAll('select');
+            const states = [];
+            
+            selects.forEach((select, index) => {
+                const state = {
+                    id: select.id || `select-${index}`,
+                    name: select.name,
+                    value: select.value,
+                    selectedIndex: select.selectedIndex,
+                    selectedText: select.selectedOptions[0]?.text || 'None',
+                    optionCount: select.options.length,
+                    disabled: select.disabled,
+                    visible: select.style.display !== 'none'
+                };
+                states.push(state);
+            });
+            
+            console.log('Current Select States:', states);
+            showResults(`Logged ${states.length} select elements to console. Check browser console for details.`, false);
+        }
+
+        // Reset all select elements to their default state
+        function resetAllSelects() {
+            const selects = document.querySelectorAll('select');
+            let resetCount = 0;
+            
+            selects.forEach(select => {
+                if (!select.disabled) {
+                    select.selectedIndex = 0;
+                    resetCount++;
+                }
+            });
+            
+            showResults(`Reset ${resetCount} select elements to default state.`, false);
+        }
+
+        // Test event handling on select elements
+        function testEventHandling() {
+            const testSelect = document.getElementById('gender');
+            const eventsFired = [];
+            
+            // Add event listeners
+            const eventTypes = ['change', 'input', 'focus', 'blur', 'click', 'mousedown', 'mouseup'];
+            const listeners = {};
+            
+            eventTypes.forEach(eventType => {
+                listeners[eventType] = () => eventsFired.push(eventType);
+                testSelect.addEventListener(eventType, listeners[eventType]);
+            });
+            
+            // Simulate the extension's event sequence
+            testSelect.focus();
+            testSelect.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+            testSelect.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            testSelect.value = 'male';
+            testSelect.dispatchEvent(new Event('input', { bubbles: true }));
+            testSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            testSelect.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+            testSelect.blur();
+            
+            // Clean up listeners
+            eventTypes.forEach(eventType => {
+                testSelect.removeEventListener(eventType, listeners[eventType]);
+            });
+            
+            const results = `
+                <strong>Event Handling Test Results:</strong><br>
+                Selected Value: ${testSelect.value}<br>
+                Events Fired: ${eventsFired.join(', ')}<br>
+                Total Events: ${eventsFired.length}
+            `;
+            
+            showResults(results, false);
+        }
+
+        // Show test results
+        function showResults(message, isError = false) {
+            const resultsDiv = document.getElementById('test-results');
+            const contentDiv = document.getElementById('results-content');
+            
+            resultsDiv.style.display = 'block';
+            resultsDiv.className = isError ? 'results error' : 'results';
+            contentDiv.innerHTML = message;
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                resultsDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Add change event listeners to all selects for real-time feedback
+        document.addEventListener('DOMContentLoaded', function() {
+            const selects = document.querySelectorAll('select');
+            
+            selects.forEach(select => {
+                select.addEventListener('change', function() {
+                    console.log(`Select changed: ${this.id || this.name} = ${this.value} (${this.selectedOptions[0]?.text})`);
+                });
+            });
+            
+            // Mock React internal properties for testing
+            const reactSelect = document.getElementById('react-framework');
+            if (reactSelect) {
+                reactSelect._reactInternalFiber = { mock: 'react-fiber' };
+            }
+            
+            console.log('Select Dropdown Test Page loaded. Ready for autofill testing!');
+        });
+
+        // Add some framework-specific properties for testing
+        window.addEventListener('load', function() {
+            // Mock Vue.js properties
+            const vueSelect = document.getElementById('vue-skill');
+            if (vueSelect) {
+                vueSelect.__vue__ = {
+                    $emit: function(event, value) {
+                        console.log(`Vue.js event emitted: ${event} with value: ${value}`);
+                    }
+                };
+            }
+            
+            // Mock Angular properties
+            const angularSelect = document.getElementById('angular-position');
+            if (angularSelect) {
+                angularSelect.ng339 = { mock: 'angular-scope' };
+            }
+        });
+    </script>
+</body>
+</html>
