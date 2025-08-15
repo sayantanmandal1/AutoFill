@@ -117,32 +117,20 @@ class PopupManager {
       const result = await chrome.storage.sync.get(['profiles', 'settings']);
 
       // Initialize default structure if not exists
-      this.profiles = result.profiles || {
-        default: {
-          name: 'Default Profile',
-          data: {
-            fullName: '',
-            email: '',
-            personalEmail: 'msayantan05@gmail.com',
-            studentNumber: '',
-            phone: '',
-            tenthMarks: '',
-            twelfthMarks: '',
-            ugCgpa: '',
-            gender: '',
-            campus: '',
-            degree: 'B Tech',
-            specialization: 'Computer Science and Engineering',
-            dateOfBirth: '2004-03-08',
-            leetcodeUrl: '',
-            linkedinUrl: '',
-            githubUrl: '',
-            resumeUrl: 'https://drive.google.com/file/d/1YOHB-4UvI9zGhbTOa9wOkyPhYDCmAfbl/view?usp=drive_link',
-            portfolioUrl: '',
-            customFields: {}
-          }
+      this.profiles = result.profiles || this.getDefaultProfiles();
+
+      // Ensure existing profiles have all default values
+      Object.keys(this.profiles).forEach(profileId => {
+        const profile = this.profiles[profileId];
+        if (profile && profile.data) {
+          // Add missing default values to existing profiles
+          if (!profile.data.personalEmail) profile.data.personalEmail = 'msayantan05@gmail.com';
+          if (!profile.data.degree) profile.data.degree = 'B Tech';
+          if (!profile.data.specialization) profile.data.specialization = 'Computer Science and Engineering';
+          if (!profile.data.dateOfBirth) profile.data.dateOfBirth = '2004-03-08';
+          if (!profile.data.resumeUrl) profile.data.resumeUrl = 'https://drive.google.com/file/d/1YOHB-4UvI9zGhbTOa9wOkyPhYDCmAfbl/view?usp=drive_link';
         }
-      };
+      });
 
       this.settings = result.settings || {
         activeProfile: 'default',
@@ -300,12 +288,22 @@ class PopupManager {
   populateForm() {
     const profileData = this.profiles[this.currentProfile]?.data || {};
 
+    // Define default values for fields
+    const defaultValues = {
+      personalEmail: 'msayantan05@gmail.com',
+      degree: 'B Tech',
+      specialization: 'Computer Science and Engineering',
+      dateOfBirth: '2004-03-08',
+      resumeUrl: 'https://drive.google.com/file/d/1YOHB-4UvI9zGhbTOa9wOkyPhYDCmAfbl/view?usp=drive_link'
+    };
+
     // Populate basic fields
     const fields = ['fullName', 'email', 'personalEmail', 'studentNumber', 'phone', 'tenthMarks', 'twelfthMarks', 'ugCgpa', 'gender', 'campus', 'degree', 'specialization', 'dateOfBirth', 'leetcodeUrl', 'linkedinUrl', 'githubUrl', 'resumeUrl', 'portfolioUrl'];
     fields.forEach(field => {
       const element = document.getElementById(field.replace(/([A-Z])/g, '-$1').toLowerCase());
       if (element) {
-        element.value = profileData[field] || '';
+        // Use profile data if available, otherwise use default value, otherwise empty string
+        element.value = profileData[field] || defaultValues[field] || '';
       }
     });
 
