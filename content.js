@@ -102,6 +102,10 @@ class AutofillManager {
 
       if (filledCount > 0) {
         this.showToast(`✅ Autofilled ${filledCount} field${filledCount === 1 ? '' : 's'}!`, 'success');
+        // Try to click submit button for Google Forms
+        if (isGoogleForm) {
+          setTimeout(() => this.clickGoogleFormSubmitButton(), 500); // Wait a bit for UI to update
+        }
         return { filledCount, message: 'Success' };
       } else {
         this.showToast('Failed to fill any fields', 'error');
@@ -599,10 +603,10 @@ class AutofillManager {
       studentNumber: ['student', 'registration', 'id number', 'student id', 'enrollment', 'roll number', 'id', 'student number', 'reg', 'registration number'],
       tenthMarks: ['10th', 'tenth', '10 grade', 'tenth grade', 'class 10', 'ssc', 'matriculation', '10th marks', 'tenth marks', '10th percentage', 'class x'],
       twelfthMarks: ['12th', 'twelfth', '12 grade', 'twelfth grade', 'class 12', 'hsc', 'intermediate', '12th marks', 'twelfth marks', '12th percentage', 'class xii'],
-      ugCgpa: ['cgpa', 'gpa', 'undergraduate', 'ug cgpa', 'college gpa', 'university gpa', 'graduation', 'degree', 'bachelor'],
+      ugCgpa: ['cgpa', 'gpa', 'undergraduate', 'ug cgpa', 'college gpa', 'university gpa', 'graduation', 'bachelor gpa', 'bachelor marks', 'bachelor score', 'bachelor grade'],
       gender: ['gender', 'sex', 'male', 'female', 'gender identity', 'sex identity'],
       campus: ['campus', 'college', 'university', 'institution', 'vit', 'amaravathi', 'ap'],
-      degree: ['degree', 'qualification', 'education level', 'academic degree', 'bachelor', 'b tech', 'btech', 'b.tech'],
+      degree: ['degree', 'qualification', 'education level', 'academic degree', 'b tech', 'btech', 'b.tech', 'bachelor degree', 'bachelor of technology'],
       specialization: ['specialization', 'major', 'field of study', 'degree', 'branch', 'stream', 'discipline', 'course', 'program', 'field', 'study area', 'academic field', 'subject', 'department'],
       dateOfBirth: ['dob', 'date of birth', 'birth date', 'birthday', 'birthdate', 'date birth', 'birth', 'born', 'born on', 'date born', 'birth day', 'birth-date', 'date-of-birth'],
       linkedinUrl: ['linkedin', 'linked in', 'linkedin profile', 'linkedin url', 'professional profile', 'linked-in', 'professional', 'social'],
@@ -1526,6 +1530,22 @@ class AutofillManager {
     } catch (error) {
       console.log('Autofill:', message);
     }
+  }
+
+  // Add a function to click the Google Form submit button
+  clickGoogleFormSubmitButton() {
+    // Try to find the submit button by text
+    const buttons = Array.from(document.querySelectorAll('div[role="button"], span'));
+    const submitButton = buttons.find(btn =>
+      btn.textContent.trim().toLowerCase() === 'submit'
+    );
+    if (submitButton) {
+      submitButton.click();
+      this.log('Clicked Google Form submit button');
+      return true;
+    }
+    this.log('Submit button not found');
+    return false;
   }
 }
 
