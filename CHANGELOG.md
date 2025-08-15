@@ -5,6 +5,14 @@ All notable changes to the Job Application Autofill Extension will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.12] - 2025-08-15
+
+### 📦 Other Changes
+
+- Merge branch 'master' of https://github.com/sayantanmandal1/AutoFill ([90e77b0](../../commit/90e77b0))
+- hmm ([20e8d7e](../../commit/20e8d7e))
+
+
 ## [0.0.11] - 2025-08-15
 
 ### 📦 Other Changes
