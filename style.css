@@ -116,6 +116,56 @@ header h1 {
     border-color: #28a745;
 }
 
+/* Radio button styles */
+.radio-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    transition: all 0.2s ease;
+    min-width: 80px;
+    justify-content: center;
+}
+
+.radio-option:hover {
+    border-color: #1a73e8;
+    background-color: #f8f9ff;
+}
+
+.radio-option input[type="radio"] {
+    margin: 0;
+    margin-right: 6px;
+    width: auto;
+    accent-color: #1a73e8;
+}
+
+.radio-option input[type="radio"]:checked + .radio-label {
+    color: #1a73e8;
+    font-weight: 500;
+}
+
+.radio-option:has(input[type="radio"]:checked) {
+    border-color: #1a73e8;
+    background-color: #f8f9ff;
+    box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
+}
+
+.radio-label {
+    font-size: 14px;
+    color: #333;
+    transition: color 0.2s ease;
+}
+
 .field-error {
     font-size: 12px;
     color: #dc3545;

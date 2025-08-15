@@ -128,6 +128,8 @@ class PopupManager {
           if (!profile.data.degree) profile.data.degree = 'B Tech';
           if (!profile.data.specialization) profile.data.specialization = 'Computer Science and Engineering';
           if (!profile.data.dateOfBirth) profile.data.dateOfBirth = '2004-03-08';
+          if (!profile.data.gender) profile.data.gender = 'Male';
+          if (!profile.data.campus) profile.data.campus = 'VIT-AP';
           if (!profile.data.resumeUrl) profile.data.resumeUrl = 'https://drive.google.com/file/d/1YOHB-4UvI9zGhbTOa9wOkyPhYDCmAfbl/view?usp=drive_link';
         }
       });
@@ -294,11 +296,13 @@ class PopupManager {
       degree: 'B Tech',
       specialization: 'Computer Science and Engineering',
       dateOfBirth: '2004-03-08',
+      gender: 'Male',
+      campus: 'VIT-AP',
       resumeUrl: 'https://drive.google.com/file/d/1YOHB-4UvI9zGhbTOa9wOkyPhYDCmAfbl/view?usp=drive_link'
     };
 
     // Populate basic fields
-    const fields = ['fullName', 'email', 'personalEmail', 'studentNumber', 'phone', 'tenthMarks', 'twelfthMarks', 'ugCgpa', 'gender', 'campus', 'degree', 'specialization', 'dateOfBirth', 'leetcodeUrl', 'linkedinUrl', 'githubUrl', 'resumeUrl', 'portfolioUrl'];
+    const fields = ['fullName', 'email', 'personalEmail', 'studentNumber', 'phone', 'tenthMarks', 'twelfthMarks', 'ugCgpa', 'campus', 'degree', 'specialization', 'dateOfBirth', 'leetcodeUrl', 'linkedinUrl', 'githubUrl', 'resumeUrl', 'portfolioUrl'];
     fields.forEach(field => {
       const element = document.getElementById(field.replace(/([A-Z])/g, '-$1').toLowerCase());
       if (element) {
@@ -306,6 +310,15 @@ class PopupManager {
         element.value = profileData[field] || defaultValues[field] || '';
       }
     });
+
+    // Special handling for gender radio buttons
+    const genderValue = profileData.gender || defaultValues.gender || '';
+    if (genderValue) {
+      const genderRadio = document.querySelector(`input[name="gender"][value="${genderValue}"]`);
+      if (genderRadio) {
+        genderRadio.checked = true;
+      }
+    }
 
     // Populate custom fields
     this.populateCustomFields(profileData.customFields || {});

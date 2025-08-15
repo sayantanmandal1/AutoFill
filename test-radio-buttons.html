@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radio Button Gender Test - Job Application Autofill</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input, select {
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .radio-option {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            transition: all 0.2s ease;
+            min-width: 100px;
+            justify-content: center;
+        }
+        .radio-option:hover {
+            border-color: #4CAF50;
+            background-color: #f8fff8;
+        }
+        .radio-option input[type="radio"] {
+            margin-right: 8px;
+            accent-color: #4CAF50;
+        }
+        .radio-option input[type="radio"]:checked + .radio-label {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .radio-option:has(input[type="radio"]:checked) {
+            border-color: #4CAF50;
+            background-color: #f8fff8;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+        .test-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 10px 5px;
+        }
+        .test-button:hover {
+            background-color: #45a049;
+        }
+        .results {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .debug-info {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+        }
+        .test-section {
+            border: 2px dashed #007bff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔘 Radio Button Gender Field Test</h1>
+    
+    <div class="form-container">
+        <h2>🎯 Test Different Radio Button Styles</h2>
+        <p>This page tests various ways gender radio buttons appear on real forms.</p>
+        
+        <form id="test-form">
+            <!-- Test 1: Standard Radio Buttons -->
+            <div class="test-section">
+                <h3>Test 1: Standard Radio Buttons (like our popup)</h3>
+                <div class="form-group">
+                    <label>Gender:</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="gender1" value="Male">
+                            <span class="radio-label">Male</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="gender1" value="Female">
+                            <span class="radio-label">Female</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="gender1" value="Other">
+                            <span class="radio-label">Other</span>
+                        </label>
+                    </div>
+                    <div class="debug-info">Expected: "Male" should be selected by autofill</div>
+                </div>
+            </div>
+
+            <!-- Test 2: Simple Radio Buttons -->
+            <div class="test-section">
+                <h3>Test 2: Simple Radio Buttons</h3>
+                <div class="form-group">
+                    <label>Gender:</label>
+                    <div>
+                        <label><input type="radio" name="gender2" value="Male"> Male</label><br>
+                        <label><input type="radio" name="gender2" value="Female"> Female</label><br>
+                        <label><input type="radio" name="gender2" value="Other"> Other</label>
+                    </div>
+                    <div class="debug-info">Expected: "Male" should be selected by autofill</div>
+                </div>
+            </div>
+
+            <!-- Test 3: Radio Buttons with Different Values -->
+            <div class="test-section">
+                <h3>Test 3: Radio Buttons with Short Values</h3>
+                <div class="form-group">
+                    <label>Gender:</label>
+                    <div>
+                        <label><input type="radio" name="gender3" value="M"> Male</label><br>
+                        <label><input type="radio" name="gender3" value="F"> Female</label><br>
+                        <label><input type="radio" name="gender3" value="O"> Other</label>
+                    </div>
+                    <div class="debug-info">Expected: "M" should be selected (pattern matching)</div>
+                </div>
+            </div>
+
+            <!-- Test 4: Radio Buttons with Different Labels -->
+            <div class="test-section">
+                <h3>Test 4: Radio Buttons with Alternative Labels</h3>
+                <div class="form-group">
+                    <label>Sex:</label>
+                    <div>
+                        <label><input type="radio" name="sex" value="male"> Man</label><br>
+                        <label><input type="radio" name="sex" value="female"> Woman</label><br>
+                        <label><input type="radio" name="sex" value="other"> Prefer not to say</label>
+                    </div>
+                    <div class="debug-info">Expected: "male" should be selected (pattern matching)</div>
+                </div>
+            </div>
+
+            <!-- Test 5: Fieldset with Legend -->
+            <div class="test-section">
+                <h3>Test 5: Fieldset with Legend</h3>
+                <fieldset>
+                    <legend>Gender Identity</legend>
+                    <label><input type="radio" name="gender4" value="Male"> Male</label><br>
+                    <label><input type="radio" name="gender4" value="Female"> Female</label><br>
+                    <label><input type="radio" name="gender4" value="Non-binary"> Non-binary</label><br>
+                    <label><input type="radio" name="gender4" value="Other"> Other</label>
+                </fieldset>
+                <div class="debug-info">Expected: "Male" should be selected by autofill</div>
+            </div>
+
+            <!-- Test 6: Other Fields for Context -->
+            <div class="test-section">
+                <h3>Other Fields for Context</h3>
+                <div class="form-group">
+                    <label for="degree">Degree:</label>
+                    <input type="text" id="degree" name="degree" placeholder="Enter your degree">
+                    <div class="debug-info">Expected: "B Tech" should be filled</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="personal-email">Personal Email:</label>
+                    <input type="email" id="personal-email" name="personalEmail" placeholder="Enter personal email">
+                    <div class="debug-info">Expected: "msayantan05@gmail.com" should be filled</div>
+                </div>
+            </div>
+        </form>
+
+        <div style="margin-top: 20px;">
+            <button class="test-button" onclick="enableDebugMode()">Enable Debug Mode</button>
+            <button class="test-button" onclick="checkRadioValues()">Check Radio Values</button>
+            <button class="test-button" onclick="clearAllRadios()">Clear All Radios</button>
+            <button class="test-button" onclick="simulateAutofill()">Simulate Autofill</button>
+        </div>
+
+        <div id="test-results" class="results" style="display: none;">
+            <h3>Radio Button Test Results:</h3>
+            <div id="results-content"></div>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <h2>📋 Test Instructions</h2>
+        <ol>
+            <li><strong>Enable Debug Mode:</strong> Click to see detailed console logs</li>
+            <li><strong>Open Extension Popup:</strong> Verify gender shows as radio buttons with "Male" selected</li>
+            <li><strong>Test Autofill:</strong> Use "Autofill Now" or Alt+Shift+F on this page</li>
+            <li><strong>Check Results:</strong> Click "Check Radio Values" to see what was selected</li>
+            <li><strong>Manual Test:</strong> Click "Simulate Autofill" to test the logic directly</li>
+        </ol>
+
+        <h3>🔍 Expected Results:</h3>
+        <ul>
+            <li><strong>All gender radio groups:</strong> Should have appropriate option selected</li>
+            <li><strong>Pattern matching:</strong> Should work for different value formats (M/F, male/female)</li>
+            <li><strong>Label matching:</strong> Should work when labels differ from values</li>
+            <li><strong>Other fields:</strong> Should fill normally (degree, email)</li>
+        </ul>
+    </div>
+
+    <script>
+        function enableDebugMode() {
+            localStorage.setItem('autofill_debug', 'true');
+            console.log('Debug mode enabled! Extension will log radio button handling.');
+            showResults('Debug mode enabled! Check console for detailed logs.', false);
+        }
+
+        function checkRadioValues() {
+            const results = [];
+            
+            // Check all radio groups
+            const radioGroups = ['gender1', 'gender2', 'gender3', 'sex', 'gender4'];
+            
+            radioGroups.forEach(groupName => {
+                const selectedRadio = document.querySelector(`input[name="${groupName}"]:checked`);
+                if (selectedRadio) {
+                    const label = selectedRadio.closest('label')?.textContent.trim() || 'Unknown';
+                    results.push(`✅ <strong>${groupName}:</strong> "${selectedRadio.value}" (${label})`);
+                } else {
+                    results.push(`❌ <strong>${groupName}:</strong> No selection`);
+                }
+            });
+            
+            // Check other fields
+            const degree = document.getElementById('degree').value || '(empty)';
+            const email = document.getElementById('personal-email').value || '(empty)';
+            
+            results.push(`ℹ️ <strong>degree:</strong> "${degree}"`);
+            results.push(`ℹ️ <strong>personal-email:</strong> "${email}"`);
+            
+            document.getElementById('results-content').innerHTML = results.join('<br>');
+            document.getElementById('test-results').style.display = 'block';
+        }
+
+        function clearAllRadios() {
+            const radios = document.querySelectorAll('input[type="radio"]');
+            radios.forEach(radio => {
+                radio.checked = false;
+            });
+            
+            // Clear other fields
+            document.getElementById('degree').value = '';
+            document.getElementById('personal-email').value = '';
+            
+            document.getElementById('test-results').style.display = 'none';
+            console.log('All radio buttons and fields cleared');
+        }
+
+        function simulateAutofill() {
+            console.log('Simulating autofill with gender radio button logic...');
+            
+            // Simulate gender selection for each group
+            const genderMappings = {
+                'gender1': 'Male',      // Exact match
+                'gender2': 'Male',      // Exact match
+                'gender3': 'M',         // Pattern match (M for Male)
+                'sex': 'male',          // Pattern match (male for Male)
+                'gender4': 'Male'       // Exact match
+            };
+            
+            Object.entries(genderMappings).forEach(([groupName, expectedValue]) => {
+                const radio = document.querySelector(`input[name="${groupName}"][value="${expectedValue}"]`);
+                if (radio) {
+                    radio.checked = true;
+                    radio.dispatchEvent(new Event('change', { bubbles: true }));
+                    console.log(`Selected ${groupName}: ${expectedValue}`);
+                } else {
+                    console.log(`Could not find radio for ${groupName} with value ${expectedValue}`);
+                }
+            });
+            
+            // Fill other fields
+            document.getElementById('degree').value = 'B Tech';
+            document.getElementById('personal-email').value = 'msayantan05@gmail.com';
+            
+            // Trigger events
+            document.getElementById('degree').dispatchEvent(new Event('input', { bubbles: true }));
+            document.getElementById('personal-email').dispatchEvent(new Event('input', { bubbles: true }));
+            
+            console.log('Autofill simulation completed');
+            showResults('Autofill simulation completed! Check radio selections.', false);
+        }
+
+        function showResults(message, isError = false) {
+            const resultsDiv = document.getElementById('test-results');
+            const contentDiv = document.getElementById('results-content');
+            
+            resultsDiv.style.display = 'block';
+            resultsDiv.className = isError ? 'results error' : 'results';
+            contentDiv.innerHTML = message;
+            
+            setTimeout(() => {
+                if (!isError) {
+                    resultsDiv.style.display = 'none';
+                }
+            }, 3000);
+        }
+
+        // Add change event listeners for real-time feedback
+        document.addEventListener('DOMContentLoaded', function() {
+            const radios = document.querySelectorAll('input[type="radio"]');
+            
+            radios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    console.log(`Radio changed: ${this.name} = "${this.value}"`);
+                });
+            });
+            
+            console.log('Radio button test page loaded!');
+            console.log('Radio groups detected:', ['gender1', 'gender2', 'gender3', 'sex', 'gender4']);
+        });
+    </script>
+</body>
+</html>

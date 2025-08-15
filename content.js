@@ -139,13 +139,17 @@ class AutofillManager {
       'input[type="tel"]',
       'input[type="url"]',
       'input[type="date"]',
+      'input[type="radio"]',
+      'input[type="checkbox"]',
       'textarea',
       'select',
       'input[jsname]', // Google Forms specific
       'div[role="textbox"]', // Google Forms rich text
       'input[data-initial-value]', // Google Forms
       'div[role="listbox"]', // Google Forms dropdowns
-      'div[role="option"]' // Google Forms options
+      'div[role="option"]', // Google Forms options
+      'div[role="radio"]', // Google Forms radio buttons
+      'div[role="radiogroup"]' // Google Forms radio groups
     ];
 
     selectors.forEach(selector => {
@@ -169,7 +173,7 @@ class AutofillManager {
      */
   detectStandardFormFields() {
     const fields = [];
-    const elements = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="url"], input[type="date"], textarea, select, input:not([type])');
+    const elements = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="url"], input[type="date"], input[type="radio"], input[type="checkbox"], textarea, select, input:not([type])');
 
     elements.forEach(element => {
       if (this.isFieldFillable(element)) {
@@ -180,7 +184,138 @@ class AutofillManager {
       }
     });
 
+    // Also detect radio button groups
+    const radioGroups = this.detectRadioGroups();
+    fields.push(...radioGroups);
+
     return fields;
+  }
+
+  /**
+   * Detect radio button groups and treat them as single fields
+   * @returns {Array<Object>} Array of radio group field information objects
+   */
+  detectRadioGroups() {
+    const radioGroups = [];
+    const processedGroups = new Set();
+
+    // Find all radio buttons
+    const radioButtons = document.querySelectorAll('input[type="radio"]');
+    
+    radioButtons.forEach(radio => {
+      const groupName = radio.name;
+      if (groupName && !processedGroups.has(groupName)) {
+        processedGroups.add(groupName);
+        
+        // Get all radio buttons in this group
+        const groupRadios = document.querySelectorAll(`input[type="radio"][name="${groupName}"]`);
+        
+        if (groupRadios.length > 0) {
+          const fieldInfo = this.extractRadioGroupInfo(groupRadios, groupName);
+          if (fieldInfo) {
+            radioGroups.push(fieldInfo);
+          }
+        }
+      }
+    });
+
+    return radioGroups;
+  }
+
+  /**
+   * Extract field information from radio button groups
+   * @param {NodeList} radioButtons - All radio buttons in the group
+   * @param {string} groupName - The name attribute of the radio group
+   * @returns {Object} Field information object for the radio group
+   */
+  extractRadioGroupInfo(radioButtons, groupName) {
+    const info = {
+      element: radioButtons[0], // Use first radio as representative
+      type: 'radio-group',
+      radioButtons: Array.from(radioButtons),
+      groupName: groupName,
+      value: '',
+      labels: [],
+      searchText: '',
+      options: []
+    };
+
+    // Get the selected value if any
+    const selectedRadio = Array.from(radioButtons).find(radio => radio.checked);
+    if (selectedRadio) {
+      info.value = selectedRadio.value;
+    }
+
+    // Extract labels and options
+    radioButtons.forEach(radio => {
+      // Get the option value and label
+      const optionValue = radio.value;
+      let optionLabel = '';
+
+      // Try to find label for this radio button
+      const label = radio.closest('label') || document.querySelector(`label[for="${radio.id}"]`);
+      if (label) {
+        optionLabel = label.textContent.trim();
+      } else {
+        // Look for nearby text
+        const nearbyText = this.findNearbyText(radio);
+        if (nearbyText) {
+          optionLabel = nearbyText;
+        }
+      }
+
+      info.options.push({
+        element: radio,
+        value: optionValue,
+        label: optionLabel
+      });
+
+      // Add to labels for search text
+      if (optionLabel) {
+        info.labels.push(optionLabel);
+      }
+    });
+
+    // Look for group label (fieldset legend, nearby heading, etc.)
+    const container = radioButtons[0].closest('fieldset, .form-group, .radio-group, [role="radiogroup"]');
+    if (container) {
+      const legend = container.querySelector('legend');
+      if (legend) {
+        info.labels.unshift(legend.textContent.trim());
+      }
+
+      const heading = container.querySelector('h1, h2, h3, h4, h5, h6, .form-label, .field-label');
+      if (heading) {
+        info.labels.unshift(heading.textContent.trim());
+      }
+    }
+
+    // Create search text
+    const searchComponents = [
+      groupName || '',
+      radioButtons[0].className || '',
+      ...info.labels
+    ];
+
+    info.searchText = searchComponents
+      .filter(text => text && typeof text === 'string')
+      .map(text => text.trim())
+      .filter(text => text.length > 0)
+      .join(' ')
+      .toLowerCase()
+      .replace(/[^\w\s]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    this.log('Extracted radio group info:', {
+      groupName: groupName,
+      optionCount: info.options.length,
+      labels: info.labels,
+      searchText: info.searchText,
+      options: info.options.map(opt => `${opt.label} (${opt.value})`)
+    });
+
+    return info;
   }
 
   /**
@@ -667,11 +802,16 @@ class AutofillManager {
         const value = match.value;
         const dataKey = match.dataKey;
 
-        // Special handling for select fields and specific data types
+        // Special handling for different field types
         if (element.tagName === 'SELECT') {
           if (this.fillSelectField(element, value, dataKey)) {
             filledCount++;
             this.log(`Filled select field with: ${value}`);
+          }
+        } else if (match.field.type === 'radio-group') {
+          if (this.fillRadioGroup(match.field, value, dataKey)) {
+            filledCount++;
+            this.log(`Filled radio group with: ${value}`);
           }
         } else if (dataKey === 'dateOfBirth') {
           // Special handling for date fields with format conversion
@@ -1150,6 +1290,148 @@ class AutofillManager {
       }
     } catch (error) {
       this.log('❌ Error filling select field:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Fill a radio button group with intelligent option matching
+   * Handles gender and other radio button groups with pattern matching
+   * @param {Object} fieldInfo - The radio group field information
+   * @param {string} value - The value to match against radio options
+   * @param {string} dataKey - The data key to determine special handling logic
+   * @returns {boolean} True if a radio button was successfully selected
+   */
+  fillRadioGroup(fieldInfo, value, dataKey) {
+    try {
+      this.log(`Filling radio group for ${dataKey} with value: ${value}`);
+
+      const options = fieldInfo.options;
+      let selectedOption = null;
+
+      // Special handling for gender field
+      if (dataKey === 'gender') {
+        const genderMappings = [
+          { value: 'Male', patterns: ['male', 'm', 'man', 'boy', 'masculine'] },
+          { value: 'Female', patterns: ['female', 'f', 'woman', 'girl', 'feminine'] },
+          { value: 'Other', patterns: ['other', 'prefer not to say', 'non-binary', 'non binary', 'nb'] }
+        ];
+
+        for (const mapping of genderMappings) {
+          if (mapping.value.toLowerCase() === value.toLowerCase()) {
+            // First try exact match on value
+            selectedOption = options.find(opt =>
+              opt.value.toLowerCase() === value.toLowerCase()
+            );
+
+            // Then try exact match on label
+            if (!selectedOption) {
+              selectedOption = options.find(opt =>
+                opt.label.toLowerCase() === value.toLowerCase()
+              );
+            }
+
+            // Then try pattern matching on value
+            if (!selectedOption) {
+              selectedOption = options.find(opt =>
+                mapping.patterns.some(pattern =>
+                  opt.value.toLowerCase().includes(pattern) ||
+                  pattern.includes(opt.value.toLowerCase())
+                )
+              );
+            }
+
+            // Finally try pattern matching on label
+            if (!selectedOption) {
+              selectedOption = options.find(opt =>
+                mapping.patterns.some(pattern =>
+                  opt.label.toLowerCase().includes(pattern) ||
+                  pattern.includes(opt.label.toLowerCase())
+                )
+              );
+            }
+            break;
+          }
+        }
+      }
+      // Default handling for other radio groups
+      else {
+        // Try exact match on value first
+        selectedOption = options.find(opt =>
+          opt.value.toLowerCase() === value.toLowerCase()
+        );
+
+        // Then try exact match on label
+        if (!selectedOption) {
+          selectedOption = options.find(opt =>
+            opt.label.toLowerCase() === value.toLowerCase()
+          );
+        }
+
+        // Then try partial match on value
+        if (!selectedOption) {
+          selectedOption = options.find(opt =>
+            opt.value.toLowerCase().includes(value.toLowerCase()) ||
+            value.toLowerCase().includes(opt.value.toLowerCase())
+          );
+        }
+
+        // Finally try partial match on label
+        if (!selectedOption) {
+          selectedOption = options.find(opt =>
+            opt.label.toLowerCase().includes(value.toLowerCase()) ||
+            value.toLowerCase().includes(opt.label.toLowerCase())
+          );
+        }
+      }
+
+      if (selectedOption) {
+        this.log(`Attempting to select radio option: ${selectedOption.label} (value: ${selectedOption.value})`);
+
+        // Clear all radio buttons in the group first
+        options.forEach(opt => {
+          opt.element.checked = false;
+        });
+
+        // Select the target radio button
+        const radioElement = selectedOption.element;
+        radioElement.focus();
+        radioElement.checked = true;
+
+        // Trigger comprehensive events for radio button
+        const events = [
+          new Event('focus', { bubbles: true }),
+          new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }),
+          new MouseEvent('click', { bubbles: true, cancelable: true, view: window }),
+          new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window }),
+          new Event('change', { bubbles: true }),
+          new Event('input', { bubbles: true }),
+          new Event('blur', { bubbles: true })
+        ];
+
+        events.forEach(event => {
+          try {
+            radioElement.dispatchEvent(event);
+          } catch (eventError) {
+            this.log(`Error dispatching ${event.type} event on radio:`, eventError);
+          }
+        });
+
+        // Verify the selection
+        if (radioElement.checked) {
+          this.log(`✅ Successfully selected radio option: ${selectedOption.label} (value: ${selectedOption.value})`);
+          return true;
+        } else {
+          this.log(`⚠️ Radio selection verification failed for: ${selectedOption.label}`);
+          return false;
+        }
+      } else {
+        this.log(`❌ No matching radio option found for value: ${value}`);
+        this.log('Available radio options:', options.map(opt => `"${opt.label}" (value: "${opt.value}")`));
+        return false;
+      }
+    } catch (error) {
+      this.log('❌ Error filling radio group:', error);
       return false;
     }
   }
