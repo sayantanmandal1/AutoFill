@@ -273,7 +273,7 @@ class BackgroundManager {
               leetcodeUrl: 'https://leetcode.com/u/sayonara1337/',
               linkedinUrl: 'https://www.linkedin.com/in/sayantan-mandal-8a14b7202/',
               githubUrl: 'https://github.com/sayantanmandal1',
-              resumeUrl: 'https://drive.google.com/file/d/1e_zGr0Ld9mUR9C1HLHjMGN8aV77l1jcO/view?usp=drive_link',
+              resumeUrl: 'https://drive.google.com/file/d/1YOHB-4UvI9zGhbTOa9wOkyPhYDCmAfbl/view?usp=drive_link',
               portfolioUrl: 'https://d1grz986bewgw4.cloudfront.net/',
               customFields: {}
             }
