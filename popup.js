@@ -123,6 +123,7 @@ class PopupManager {
           data: {
             fullName: '',
             email: '',
+            personalEmail: 'msayantan05@gmail.com',
             studentNumber: '',
             phone: '',
             tenthMarks: '',
@@ -130,12 +131,13 @@ class PopupManager {
             ugCgpa: '',
             gender: '',
             campus: '',
+            degree: 'B Tech',
             specialization: 'Computer Science and Engineering',
             dateOfBirth: '2004-03-08',
             leetcodeUrl: '',
             linkedinUrl: '',
             githubUrl: '',
-            resumeUrl: '',
+            resumeUrl: 'https://drive.google.com/file/d/1YOHB-4UvI9zGhbTOa9wOkyPhYDCmAfbl/view?usp=drive_link',
             portfolioUrl: '',
             customFields: {}
           }
@@ -200,6 +202,7 @@ class PopupManager {
         data: {
           fullName: 'Sayantan Mandal',
           email: 'sayantan.22bce8533@vitapstudent.ac.in',
+          personalEmail: 'msayantan05@gmail.com',
           studentNumber: '22BCE8533',
           phone: '6290464748',
           tenthMarks: '95',
@@ -207,12 +210,13 @@ class PopupManager {
           ugCgpa: '8.87',
           gender: 'Male',
           campus: 'VIT-AP',
+          degree: 'B Tech',
           specialization: 'Computer Science and Engineering',
           dateOfBirth: '2004-03-08',
           leetcodeUrl: 'https://leetcode.com/u/sayonara1337/',
           linkedinUrl: 'https://www.linkedin.com/in/sayantan-mandal-8a14b7202/',
           githubUrl: 'https://github.com/sayantanmandal1',
-          resumeUrl: 'https://drive.google.com/file/d/1e_zGr0Ld9mUR9C1HLHjMGN8aV77l1jcO/view?usp=drive_link',
+          resumeUrl: 'https://drive.google.com/file/d/1YOHB-4UvI9zGhbTOa9wOkyPhYDCmAfbl/view?usp=drive_link',
           portfolioUrl: 'https://d1grz986bewgw4.cloudfront.net/',
           customFields: {}
         }
@@ -297,7 +301,7 @@ class PopupManager {
     const profileData = this.profiles[this.currentProfile]?.data || {};
 
     // Populate basic fields
-    const fields = ['fullName', 'email', 'studentNumber', 'phone', 'tenthMarks', 'twelfthMarks', 'ugCgpa', 'gender', 'campus', 'specialization', 'dateOfBirth', 'leetcodeUrl', 'linkedinUrl', 'githubUrl', 'resumeUrl', 'portfolioUrl'];
+    const fields = ['fullName', 'email', 'personalEmail', 'studentNumber', 'phone', 'tenthMarks', 'twelfthMarks', 'ugCgpa', 'gender', 'campus', 'degree', 'specialization', 'dateOfBirth', 'leetcodeUrl', 'linkedinUrl', 'githubUrl', 'resumeUrl', 'portfolioUrl'];
     fields.forEach(field => {
       const element = document.getElementById(field.replace(/([A-Z])/g, '-$1').toLowerCase());
       if (element) {
@@ -723,6 +727,7 @@ class PopupManager {
         data: {
           fullName: '',
           email: '',
+          personalEmail: 'msayantan05@gmail.com',
           studentNumber: '',
           phone: '',
           tenthMarks: '',
@@ -730,12 +735,13 @@ class PopupManager {
           ugCgpa: '',
           gender: '',
           campus: '',
+          degree: 'B Tech',
           specialization: 'Computer Science and Engineering',
           dateOfBirth: '2004-03-08',
           leetcodeUrl: '',
           linkedinUrl: '',
           githubUrl: '',
-          resumeUrl: '',
+          resumeUrl: 'https://drive.google.com/file/d/1YOHB-4UvI9zGhbTOa9wOkyPhYDCmAfbl/view?usp=drive_link',
           portfolioUrl: '',
           customFields: {}
         }

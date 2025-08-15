@@ -138,10 +138,14 @@ class AutofillManager {
       'input[type="email"]',
       'input[type="tel"]',
       'input[type="url"]',
+      'input[type="date"]',
       'textarea',
+      'select',
       'input[jsname]', // Google Forms specific
       'div[role="textbox"]', // Google Forms rich text
-      'input[data-initial-value]' // Google Forms
+      'input[data-initial-value]', // Google Forms
+      'div[role="listbox"]', // Google Forms dropdowns
+      'div[role="option"]' // Google Forms options
     ];
 
     selectors.forEach(selector => {
@@ -165,7 +169,7 @@ class AutofillManager {
      */
   detectStandardFormFields() {
     const fields = [];
-    const elements = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="url"], textarea, input:not([type])');
+    const elements = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="url"], input[type="date"], textarea, select, input:not([type])');
 
     elements.forEach(element => {
       if (this.isFieldFillable(element)) {
@@ -454,7 +458,8 @@ class AutofillManager {
     // Enhanced matching patterns with more variations
     const patterns = {
       fullName: ['name', 'full name', 'your name', 'applicant name', 'candidate name', 'first name', 'last name', 'fname', 'lname', 'fullname', 'complete name', 'legal name'],
-      email: ['email', 'e-mail', 'email address', 'contact email', 'university email', 'college email', 'mail', 'e mail', 'electronic mail', 'contact', 'reach'],
+      email: ['email', 'e-mail', 'email address', 'contact email', 'university email', 'college email', 'mail', 'e mail', 'electronic mail', 'contact', 'reach', 'official email', 'academic email'],
+      personalEmail: ['personal email', 'personal mail', 'private email', 'alternate email', 'secondary email', 'personal e-mail', 'mail id', 'email id', 'personal contact'],
       phone: ['phone', 'mobile', 'telephone', 'contact number', 'phone number', 'mobile number', 'cell', 'tel', 'contact', 'number'],
       studentNumber: ['student', 'registration', 'id number', 'student id', 'enrollment', 'roll number', 'id', 'student number', 'reg', 'registration number'],
       tenthMarks: ['10th', 'tenth', '10 grade', 'tenth grade', 'class 10', 'ssc', 'matriculation', '10th marks', 'tenth marks', '10th percentage', 'class x'],
@@ -462,12 +467,13 @@ class AutofillManager {
       ugCgpa: ['cgpa', 'gpa', 'undergraduate', 'ug cgpa', 'college gpa', 'university gpa', 'graduation', 'degree', 'bachelor'],
       gender: ['gender', 'sex', 'male', 'female', 'gender identity', 'sex identity'],
       campus: ['campus', 'college', 'university', 'institution', 'vit', 'amaravathi', 'ap'],
+      degree: ['degree', 'qualification', 'education level', 'academic degree', 'bachelor', 'b tech', 'btech', 'b.tech'],
       specialization: ['specialization', 'major', 'field of study', 'degree', 'branch', 'stream', 'discipline', 'course', 'program', 'field', 'study area', 'academic field', 'subject', 'department'],
       dateOfBirth: ['dob', 'date of birth', 'birth date', 'birthday', 'birthdate', 'date birth', 'birth', 'born', 'born on', 'date born', 'birth day', 'birth-date', 'date-of-birth'],
       linkedinUrl: ['linkedin', 'linked in', 'linkedin profile', 'linkedin url', 'professional profile', 'linked-in', 'professional', 'social'],
       githubUrl: ['github', 'git hub', 'github profile', 'github url', 'repository', 'code profile', 'git-hub', 'coding', 'repo'],
       leetcodeUrl: ['leetcode', 'leet code', 'coding profile', 'algorithm profile', 'competitive programming', 'leet-code', 'coding', 'algorithm'],
-      resumeUrl: ['resume', 'cv', 'curriculum vitae', 'resume link', 'cv link', 'document', 'curriculum', 'resume url'],
+      resumeUrl: ['resume', 'cv', 'curriculum vitae', 'resume link', 'cv link', 'document', 'curriculum', 'resume url', 'drive link', 'google drive'],
       portfolioUrl: ['portfolio', 'website', 'personal website', 'portfolio website', 'work samples', 'personal site', 'portfolio url', 'site']
     };
 
@@ -669,17 +675,9 @@ class AutofillManager {
           }
         } else if (dataKey === 'dateOfBirth') {
           // Special handling for date fields with format conversion
-          const formattedValue = this.formatDateForField(element, value);
-          if (isGoogleForm) {
-            if (this.fillGoogleFormField(element, formattedValue)) {
-              filledCount++;
-              this.log(`Filled Google Form date field with: ${formattedValue}`);
-            }
-          } else {
-            if (this.fillStandardField(element, formattedValue)) {
-              filledCount++;
-              this.log(`Filled standard date field with: ${formattedValue}`);
-            }
+          if (this.fillDateField(element, value, isGoogleForm)) {
+            filledCount++;
+            this.log(`Filled date field with: ${value}`);
           }
         } else if (isGoogleForm) {
           if (this.fillGoogleFormField(element, value)) {
@@ -781,6 +779,52 @@ class AutofillManager {
   }
 
   /**
+   * Fill date field with enhanced handling for different input types
+   * @param {HTMLElement} element - The date field element
+   * @param {string} value - The date value (YYYY-MM-DD format)
+   * @param {boolean} isGoogleForm - Whether this is a Google Form
+   * @returns {boolean} True if the field was successfully filled
+   */
+  fillDateField(element, value, isGoogleForm) {
+    try {
+      this.log(`Filling date field: ${element.type}, value: ${value}`);
+
+      // Handle different input types
+      if (element.type === 'date') {
+        // HTML5 date input - use ISO format directly
+        element.focus();
+        element.value = value; // YYYY-MM-DD format
+        
+        // Trigger events for date inputs
+        const events = [
+          new Event('input', { bubbles: true }),
+          new Event('change', { bubbles: true }),
+          new Event('blur', { bubbles: true })
+        ];
+        
+        events.forEach(event => {
+          element.dispatchEvent(event);
+        });
+        
+        this.log(`Date input filled with ISO format: ${value}`);
+        return true;
+      } else {
+        // Text input or other type - format the date appropriately
+        const formattedValue = this.formatDateForField(element, value);
+        
+        if (isGoogleForm) {
+          return this.fillGoogleFormField(element, formattedValue);
+        } else {
+          return this.fillStandardField(element, formattedValue);
+        }
+      }
+    } catch (error) {
+      this.log('Error filling date field:', error);
+      return false;
+    }
+  }
+
+  /**
      * Fill a Google Form field with the specified value
      * Uses Google Forms specific event handling for proper form state updates
      * @param {HTMLElement} element - The form field element to fill
@@ -834,12 +878,29 @@ class AutofillManager {
      */
   fillStandardField(element, value) {
     try {
+      this.log(`Filling standard field: ${element.type || element.tagName}, value: ${value}`);
+      
+      // Focus the element
       element.focus();
+      
+      // Clear existing value first
+      element.value = '';
+      
+      // Set the new value
       element.value = value;
+      
+      // For text inputs, also try setting via setAttribute as fallback
+      if (element.tagName === 'INPUT' && (element.type === 'text' || !element.type)) {
+        element.setAttribute('value', value);
+      }
 
+      // Comprehensive event sequence
       const events = [
+        new Event('focus', { bubbles: true }),
         new Event('input', { bubbles: true }),
         new Event('change', { bubbles: true }),
+        new KeyboardEvent('keydown', { bubbles: true }),
+        new KeyboardEvent('keyup', { bubbles: true }),
         new Event('blur', { bubbles: true })
       ];
 
@@ -847,7 +908,11 @@ class AutofillManager {
         element.dispatchEvent(event);
       });
 
-      return element.value === value;
+      // Verify the value was set
+      const success = element.value === value;
+      this.log(`Standard field fill ${success ? 'successful' : 'failed'}: expected "${value}", got "${element.value}"`);
+      
+      return success;
     } catch (error) {
       this.log('Error filling standard field:', error);
       return false;
@@ -948,6 +1013,7 @@ class AutofillManager {
 
         // Step 1: Focus the element to ensure it's active
         element.focus();
+        this.log('Step 1: Focused element');
 
         // Step 2: Trigger mousedown event (some frameworks require this)
         element.dispatchEvent(new MouseEvent('mousedown', {
@@ -955,6 +1021,7 @@ class AutofillManager {
           cancelable: true,
           view: window
         }));
+        this.log('Step 2: Dispatched mousedown');
 
         // Step 3: Trigger click event on the select element
         element.dispatchEvent(new MouseEvent('click', {
@@ -962,17 +1029,19 @@ class AutofillManager {
           cancelable: true,
           view: window
         }));
+        this.log('Step 3: Dispatched click');
 
-        // Step 4: Set the value and selected property
-        element.value = selectedOption.value;
-        selectedOption.selected = true;
-
-        // Step 5: Clear other selections to ensure only our option is selected
+        // Step 4: Clear other selections first
         options.forEach(opt => {
-          if (opt !== selectedOption) {
-            opt.selected = false;
-          }
+          opt.selected = false;
         });
+        this.log('Step 4: Cleared all selections');
+
+        // Step 5: Set the value and selected property
+        selectedOption.selected = true;
+        element.value = selectedOption.value;
+        element.selectedIndex = Array.from(element.options).indexOf(selectedOption);
+        this.log(`Step 5: Set value to ${selectedOption.value}, selectedIndex to ${element.selectedIndex}`);
 
         // Step 6: Trigger comprehensive event sequence
         const events = [
